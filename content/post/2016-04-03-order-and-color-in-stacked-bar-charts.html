@@ -1,0 +1,80 @@
+---
+title: Order and Color in Stacked Bar Charts
+author: JVA
+date: '2016-04-03'
+slug: order-and-color-in-stacked-bar-charts
+categories:
+  - R
+tags:
+  - bar charts
+---
+
+
+
+<p>A stacked bar chart is a useful way to represent data when you want to show <strong>totals</strong> (the y-axis, usually some sort of count) for some set of <strong>categories</strong> (the columns, often time), and you also want to show how those totals are divvied up among some <strong>subgroups</strong> (the stacks). If you just want to see the totals without the subgroups, a simple column chart (without stacks) will suffice. If you want to show how the subgroups compare but are not particularly interested in the totals, a line chart would be better.</p>
+<p>Let’s use <a href="http://dirkmjk.nl/en/2016/01/minister-jeroen-dijsselbloem-takes-data-visualisation-challenge">these data</a> from Dutch Finance Minister Jeroen Dijsselbloem as an example.</p>
+{{< tweet 693157124717834241 >}}
+<p>For simplicity I share the 2010-2014 data in the R code below, recreating the right 5 columns of the original chart. I selected similar colors from this <a href="http://research.stowers-institute.org/efg/R/Color/Chart/">Chart of R Colors</a>.</p>
+<pre class="r"><code>div &lt;- matrix(
+  c(182, 20, 30, 76, 107, 52, 64, 128, 1, 0, 0, 0, 23,
+    0, 60, 30, 97, 90, 74, 65, 64, 2, 0, 0, 0, 0,
+    215, 59, 90, 108, 94, 92, 86, 83, 7, 0, 0, 0, 0,
+    325, 98, 112, 135, 95, 0, 87, 71, 5, 0, 0, 0, 0,
+    362, 117, 113, 139, 83, 48, 89, 32, 5, 1, 0, 0, 0),
+  ncol=5,
+  dimnames = list(
+    c(&quot;Gasunie&quot;, &quot;Tennet&quot;, &quot;UCN&quot;, &quot;Schiphol&quot;, &quot;Staatsloterij&quot;,
+      &quot;Nederlandse Spoorwegen&quot;, &quot;Havenbedrijf Rotterdam&quot;, &quot;BNG Bank&quot;, &quot;FMO&quot;,
+      &quot;De Munt&quot;, &quot;COVRA&quot;, &quot;Holland Casino&quot;, &quot;NWB Bank&quot;),
+    c(&quot;2010&quot;, &quot;2011&quot;, &quot;2012&quot;, &quot;2013&quot;, &quot;2014&quot;)))
+
+orig.col &lt;- colors()[c(518, 558, 477, 430, 11, 131, 652, 477, 459, 153, 456,
+  148, 92)]
+
+par(mar=c(4, 4, 2, 12), yaxs=&quot;i&quot;, las=1)
+barplot(div, ylim=1.05*c(0, max(apply(div, 2, sum))),
+  ylab=&quot;Dividends  (in millions of Euros)&quot;,
+  col=orig.col, border=NA, legend.text=TRUE,
+  args.legend=list(x=&quot;right&quot;, inset=-0.6, border=NA, bty=&quot;n&quot;))</code></pre>
+<p><img src="/post/2016-04-03-order-and-color-in-stacked-bar-charts_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p><em>Note that the dividends reported for Havenbedrijf Rotterdam (yellow) were greater than Nederlandse Spoorwegen (midnight blue) in 2014, although this does not agree with the chart shown in the tweet above.</em></p>
+<p>The three main decisions in creating a stacked bar chart are (1) the order of the columns, (2) the order of the stacks, and (3) the color of the stacks.</p>
+<div id="order-of-the-columns" class="section level2">
+<h2>Order of the Columns</h2>
+<p>In this case, ordering the columns is easy, because year is ordinal. If this were not the case, you might want to order the columns by the totals, or some other metric important to the story you’re telling with the chart.</p>
+</div>
+<div id="order-of-the-stacks" class="section level2">
+<h2>Order of the Stacks</h2>
+<p>It’s not clear to me how the companies (stacks) were ordered in the original chart. It’s not alphabetical, and it’s not the average annual dividend. What is it?</p>
+<p>I contend that it’s good practice to place the least variable stacks at the bottom of the column. That way, the ups and downs of the more variable stacks do not disrupt the pattern of the less variable stacks.</p>
+<p>In order to place those companies with the least variable dividends on the bottom of the bar chart, I ordered the rows by their variance and removed any rows with all zero dividends.</p>
+<pre class="r"><code>rowvar &lt;- apply(div, 1, var)
+div2 &lt;- div[order(rowvar), ]
+div3 &lt;- div2[apply(div2, 1, sum)&gt;0, ]</code></pre>
+</div>
+<div id="color-of-the-stacks" class="section level2">
+<h2>Color of the Stacks</h2>
+<p>It’s good practice to assign colors in a meaningful way whenever possible, delivering more information than simply a random collection of colors. Color could be used to identify the age, location, or product type of the companies, for example. It depends on what’s important to the story you are telling with the chart.</p>
+<p>I thought it would be interesting and informative to define colors for the companies based on whether their dividends increased or decreased over time, on average. So, I calculated the average annual change in dividends and assigned ordered positive changes to the “YlOrRd” (yellow-orange-red) color set using the R package <strong>RColorBrewer</strong> and ordered negative changes to the “Blues”.</p>
+<pre class="r"><code>library(RColorBrewer)
+change &lt;- apply(div3, 1, function(y) lsfit(1:dim(div3)[2], y)$coef[2])
+new.col &lt;- rep(NA, length(change))
+sel &lt;- change &gt; 0
+new.col[sel] &lt;- brewer.pal(sum(sel), name=&quot;YlOrRd&quot;)[rank(change[sel],
+  ties.method=&quot;first&quot;)]
+new.col[!sel] &lt;- brewer.pal(sum(!sel), name=&quot;Blues&quot;)[rank(-change[!sel],
+  ties.method=&quot;first&quot;)]
+
+par(mar=c(4, 4, 2, 12), yaxs=&quot;i&quot;, las=1)
+barplot(div3, ylim=1.05*c(0, max(apply(div3, 2, sum))),
+  xlab=&quot;Year&quot;, ylab=&quot;Dividends  (in millions of Euros)&quot;,
+  main=&quot;Companies Partially Owned by the Netherlands&quot;,
+  col=new.col, border=NA, legend.text=TRUE,
+  args.legend=list(x=&quot;right&quot;, inset=-0.6, border=NA, bty=&quot;n&quot;))</code></pre>
+<p><img src="/post/2016-04-03-order-and-color-in-stacked-bar-charts_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="reflections" class="section level2">
+<h2>Reflections</h2>
+<p>What a difference it makes to have the company with the most variable dividends, Gasunie, at the top of the stack rather than at the bottom. It makes it much easier to see that the dividends of the other companies were relatively consistent during 2010-2014.</p>
+<p>And using color to identify which companies had increasing and decreasing dividends is also very informative. It makes it easy to see that the dividends of Gasunie increased more and those of BNG Bank declined more than the other companies during 2010-2014.</p>
+</div>

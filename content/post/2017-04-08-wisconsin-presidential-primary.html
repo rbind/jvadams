@@ -1,0 +1,55 @@
+---
+title: Wisconsin Presidential Primary
+author: JVA
+date: '2016-04-08'
+slug: wisconsin-presidential-primary
+categories:
+  - R
+tags:
+  - elections
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+
+
+<p>I was curious about the Wisconsin primary election results. I wanted to see how the votes stacked up among Democrats and Republicans. I also wanted to see how both parties compared to the number of eligible voters that didn’t vote.</p>
+<p>I used election results from <a href="http://wisconsinvote.org/election-results">WisconsinVote.org</a> on 8 Apr. According to Wisconsin’s Government Accountability Board, the State of Wisconsin has <a href="http://www.gab.wi.gov/node/3905">4.44 million eligible voters</a>, of which <a href="http://www.gab.wi.gov/publications/statistics/registered-voters-2016-april-1">3,393,706 were registered by April 1, 2016</a>.</p>
+<pre class="r"><code>library(DT)
+library(RColorBrewer)
+library(tidyverse)
+
+dat &lt;- data.frame(
+  DemVotes = c(432767L, 567936L, 1765L, 1436L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0),
+  NoVotes = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2334973L),
+  RepVotes = c(0, 0, 0, 0, 531129L, 155200L, 386370L, 2288L, 3153L, 5608L, 
+    1310L, 825L, 242L, 1428L, 2491L, 10569L, 510L, 0),
+  row.names = c(&quot;Hillary Clinton&quot;, &quot;Bernie Sanders&quot;, &quot;Martin O&#39;Malley&quot;, 
+    &quot;Uninstructed Delegation D&quot;, &quot;Ted Cruz&quot;, &quot;John Kasich&quot;, &quot;Donald J. Trump&quot;, 
+    &quot;Uninstructed Delegation R&quot;, &quot;Jeb Bush&quot;, &quot;Ben Carson&quot;, &quot;Chris Christie&quot;, 
+    &quot;Carly Fiorina&quot;, &quot;Jim Gilmore&quot;, &quot;Mike Huckabee&quot;, &quot;Rand Paul&quot;, &quot;Marco Rubio&quot;,
+    &quot;Rick Santorum&quot;, &quot;No Vote&quot;)
+)
+dat &lt;- dat[with(dat, order(-DemVotes, -NoVotes, -RepVotes)), ]
+
+
+datatable(dat, options=list(pageLength=20),
+  caption=&quot;Votes in Wisconsin&#39;s 2016 Presidential Primary&quot;) %&gt;%
+  formatCurrency(1:3, currency=&quot;&quot;, digits=0)</code></pre>
+<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","caption":"<caption>Votes in Wisconsin's 2016 Presidential Primary<\/caption>","data":[["Bernie Sanders","Hillary Clinton","Martin O'Malley","Uninstructed Delegation D","No Vote","Ted Cruz","Donald J. Trump","John Kasich","Marco Rubio","Ben Carson","Jeb Bush","Rand Paul","Uninstructed Delegation R","Mike Huckabee","Chris Christie","Carly Fiorina","Rick Santorum","Jim Gilmore"],[567936,432767,1765,1436,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,2334973,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,531129,386370,155200,10569,5608,3153,2491,2288,1428,1310,825,510,242]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DemVotes<\/th>\n      <th>NoVotes<\/th>\n      <th>RepVotes<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[1,2,3]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100],"rowCallback":"function(row, data) {\nDTWidget.formatCurrency(this, row, data, 1, '', 0, 3, ',', '.', true);\nDTWidget.formatCurrency(this, row, data, 2, '', 0, 3, ',', '.', true);\nDTWidget.formatCurrency(this, row, data, 3, '', 0, 3, ',', '.', true);\n}"}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
+<p>I combined the votes for all candidates that got fewer than 100,000 votes.</p>
+<pre class="r"><code>cut &lt;- 100000
+sel &lt;- apply(dat&gt;cut, 1, any)
+oth &lt;- apply(dat[!sel, ], 2, sum)
+oth2 &lt;- rbind(&quot;Other Rep&quot;=oth, &quot;Other Dem&quot;=oth)
+oth2[1, 1] &lt;- 0
+oth2[2, 3] &lt;- 0
+dat2 &lt;- rbind(dat[sel, ], oth2)
+dat2 &lt;- dat2[with(dat2, order(-DemVotes, -NoVotes, -RepVotes)), ]</code></pre>
+<p><img src="/post/2017-04-08-wisconsin-presidential-primary_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>

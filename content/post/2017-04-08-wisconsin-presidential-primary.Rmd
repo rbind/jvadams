@@ -1,0 +1,81 @@
+---
+title: Wisconsin Presidential Primary
+author: JVA
+date: '2016-04-08'
+slug: wisconsin-presidential-primary
+categories:
+  - R
+tags:
+  - elections
+---
+
+I was curious about the Wisconsin primary election results.
+I wanted to see how the votes stacked up among Democrats and Republicans.  I also wanted to see how both parties compared to the number of eligible voters that didn't vote.
+
+I used election results from [WisconsinVote.org](http://wisconsinvote.org/election-results) on 8 Apr.
+According to Wisconsin's Government Accountability Board, the State of Wisconsin has [4.44 million eligible voters](http://www.gab.wi.gov/node/3905), of which [3,393,706 were registered by April 1, 2016](http://www.gab.wi.gov/publications/statistics/registered-voters-2016-april-1).
+
+```{r message=FALSE, warning=FALSE}
+library(DT)
+library(RColorBrewer)
+library(tidyverse)
+
+dat <- data.frame(
+  DemVotes = c(432767L, 567936L, 1765L, 1436L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0),
+  NoVotes = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2334973L),
+  RepVotes = c(0, 0, 0, 0, 531129L, 155200L, 386370L, 2288L, 3153L, 5608L, 
+    1310L, 825L, 242L, 1428L, 2491L, 10569L, 510L, 0),
+  row.names = c("Hillary Clinton", "Bernie Sanders", "Martin O'Malley", 
+    "Uninstructed Delegation D", "Ted Cruz", "John Kasich", "Donald J. Trump", 
+    "Uninstructed Delegation R", "Jeb Bush", "Ben Carson", "Chris Christie", 
+    "Carly Fiorina", "Jim Gilmore", "Mike Huckabee", "Rand Paul", "Marco Rubio",
+    "Rick Santorum", "No Vote")
+)
+dat <- dat[with(dat, order(-DemVotes, -NoVotes, -RepVotes)), ]
+
+
+datatable(dat, options=list(pageLength=20),
+  caption="Votes in Wisconsin's 2016 Presidential Primary") %>%
+  formatCurrency(1:3, currency="", digits=0)
+```
+
+I combined the votes for all candidates that got fewer than 100,000 votes.
+
+```{r}
+cut <- 100000
+sel <- apply(dat>cut, 1, any)
+oth <- apply(dat[!sel, ], 2, sum)
+oth2 <- rbind("Other Rep"=oth, "Other Dem"=oth)
+oth2[1, 1] <- 0
+oth2[2, 3] <- 0
+dat2 <- rbind(dat[sel, ], oth2)
+dat2 <- dat2[with(dat2, order(-DemVotes, -NoVotes, -RepVotes)), ]
+```
+
+```{r, echo=FALSE}
+# prepare colors for bars
+n <- apply(dat2>0, 2, sum)
+colz <- c(rev(brewer.pal(n[1], "Blues")), "gray", rev(brewer.pal(n[3], "Reds")))
+
+# initial plot
+par(mar=c(4, 4, 1, 4))
+x <- barplot(as.matrix(dat2), col=colz, yaxt="n", 
+  xlab="Chosen Primary Party", ylab="Eligible Voters  (millions)")
+
+# add axes
+tix <- seq(0, 5, 0.25)
+axis(2, at=tix*1e6, labels=format(tix), las=1)
+tix2 <- seq(0, 100, 5)
+axis(4, at=4.44e6*tix2/100, labels=format(tix2), las=1)
+mtext(side=4, "Eligible Voters  (%)", line=3)
+
+# add labels to bars
+barlabx <- rep(x, n)
+barlaby <- apply(dat2, 2, function(y) {
+  y2 <- y[y>0]
+  cumsum(y2) - y2/2
+})
+barlab <- c("Sanders", "Clinton", "", "", "Cruz", "Trump", "Kasich", "")
+text(barlabx, unlist(barlaby), barlab, col="white", font=2)
+```
