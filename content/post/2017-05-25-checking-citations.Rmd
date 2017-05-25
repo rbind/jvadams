@@ -16,14 +16,14 @@ If you conduct peer reviews of manuscripts for publication, you will do the auth
 
 Checking for one-to-one correspondence manually is time consuming.  That's why it's so common to find mismatches.
 
-You can make the job a bit easier using the `xCitation()` function of the [**jvamisc**](https://github.com/JVAdams/jvamisc) package.
+You can make the job a bit easier using the `xCitations()` function of the [**jvamisc**](https://github.com/JVAdams/jvamisc) package.
 
 ```{r}
 library(jvamisc)
 xCitations
 ```
 
-I based the function on code posted by Kay Cichini on 26 Mar 2012 on [theBioBucket](http://thebiobucket.blogspot.com/2012/03/how-to-extract-citation-from-body-of.html).  I wanted something simple to serve my purposes, so I built the function to take either a text file path or object as input, and the function returns a sorted list of the unique citations.  This makes it easy for me to (yes, this part is still manual) compare them to the works listed in the references.
+I based the function on code posted by Kay Cichini on 26 Mar 2012 on [theBioBucket](http://thebiobucket.blogspot.com/2012/03/how-to-extract-citation-from-body-of.html).  I wanted something simple to serve my purposes, so I built the function to take either a text file path or object as input, and the function returns a sorted vector of the unique citations.  This makes it easy for me to (yes, this part is still manual) compare them to the works listed in the references.
 
 ```{r}
 x <- paste("Yarmouth (1977) said something.",
@@ -33,4 +33,12 @@ x <- paste("Yarmouth (1977) said something.",
 xCitations(txt=x)
 ```
 
-Note that this function does __not__ capture citations in which the author is mentioned directly in the text and only the year is in parentheses, _Yarmouth (1977)_ in the example.
+Note that this function does **not** capture citations in which the author is mentioned directly in the text and only the year is in parentheses, *Yarmouth (1977)* in the example.
+
+## Room for improvement:
+
+* My current approach is to copy and paste the contents of a manuscript (a Word document) into a text file (removing all images), then using `xCitations()` on the text file. 
+    * This works well for a Word document, but being able to read **the Word file directly** would be an improvement.
+    * This does not work as well for manuscripts in PDF files, because citations that are wrapped across multiple lines would be missed.  Being able to **read the PDF file directly** would be an improvement.
+* My current approach is to manually compare the returned vector of citations with the list of references in the manuscript.
+    * Fully **automating this process** would be an improvement.

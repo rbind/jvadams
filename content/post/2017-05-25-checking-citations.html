@@ -17,7 +17,7 @@ tags:
 <li>Is every work listed in the references section cited in the body of the text?</li>
 </ul>
 <p>Checking for one-to-one correspondence manually is time consuming. That’s why it’s so common to find mismatches.</p>
-<p>You can make the job a bit easier using the <code>xCitation()</code> function of the <a href="https://github.com/JVAdams/jvamisc"><strong>jvamisc</strong></a> package.</p>
+<p>You can make the job a bit easier using the <code>xCitations()</code> function of the <a href="https://github.com/JVAdams/jvamisc"><strong>jvamisc</strong></a> package.</p>
 <pre class="r"><code>library(jvamisc)
 xCitations</code></pre>
 <pre><code>## function (file = NULL, txt = NULL) 
@@ -29,7 +29,7 @@ xCitations</code></pre>
 ##     return(sort(unique(x)))
 ## }
 ## &lt;environment: namespace:jvamisc&gt;</code></pre>
-<p>I based the function on code posted by Kay Cichini on 26 Mar 2012 on <a href="http://thebiobucket.blogspot.com/2012/03/how-to-extract-citation-from-body-of.html">theBioBucket</a>. I wanted something simple to serve my purposes, so I built the function to take either a text file path or object as input, and the function returns a sorted list of the unique citations. This makes it easy for me to (yes, this part is still manual) compare them to the works listed in the references.</p>
+<p>I based the function on code posted by Kay Cichini on 26 Mar 2012 on <a href="http://thebiobucket.blogspot.com/2012/03/how-to-extract-citation-from-body-of.html">theBioBucket</a>. I wanted something simple to serve my purposes, so I built the function to take either a text file path or object as input, and the function returns a sorted vector of the unique citations. This makes it easy for me to (yes, this part is still manual) compare them to the works listed in the references.</p>
 <pre class="r"><code>x &lt;- paste(&quot;Yarmouth (1977) said something.&quot;,
  &quot;Evidence of x (Barber and Jones 1991),&quot;,
  &quot;y (House et al. 1982),&quot;,
@@ -38,3 +38,17 @@ xCitations(txt=x)</code></pre>
 <pre><code>## [1] &quot;Barber and Jones 1991&quot; &quot;Folger and Penn 2000&quot;  &quot;House et al. 1982&quot;    
 ## [4] &quot;Smith 1990&quot;</code></pre>
 <p>Note that this function does <strong>not</strong> capture citations in which the author is mentioned directly in the text and only the year is in parentheses, <em>Yarmouth (1977)</em> in the example.</p>
+<div id="room-for-improvement" class="section level2">
+<h2>Room for improvement:</h2>
+<ul>
+<li>My current approach is to copy and paste the contents of a manuscript (a Word document) into a text file (removing all images), then using <code>xCitations()</code> on the text file.
+<ul>
+<li>This works well for a Word document, but being able to read <strong>the Word file directly</strong> would be an improvement.</li>
+<li>This does not work as well for manuscripts in PDF files, because citations that are wrapped across multiple lines would be missed. Being able to <strong>read the PDF file directly</strong> would be an improvement.</li>
+</ul></li>
+<li>My current approach is to manually compare the returned vector of citations with the list of references in the manuscript.
+<ul>
+<li>Fully <strong>automating this process</strong> would be an improvement.</li>
+</ul></li>
+</ul>
+</div>
