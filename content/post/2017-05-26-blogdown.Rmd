@@ -1,0 +1,15 @@
+---
+title: Blogdown
+author: JVA
+date: '2017-05-26'
+slug: blogdown
+categories:
+  - R
+tags: []
+---
+
+I started a blog in early 2016, focused on [R](https://www.r-project.org/) coding.  I was full of enthusiasm, but quickly grew frustrated with trying to post my code and output on [Blogger](https://www.blogger.com/about/?r=1-null_user).  Predictably, my posts began to fizzle out.
+
+Then I learned about [Yihui Xie](https://yihui.name/en/)'s R package [**blogdown**](https://github.com/rstudio/blogdown) which makes creating blog posts directly from R markdown files a breeze.
+
+So, I am up and running again.  And it works great!
