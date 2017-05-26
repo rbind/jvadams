@@ -79,3 +79,5 @@ barlaby <- apply(dat2, 2, function(y) {
 barlab <- c("Sanders", "Clinton", "", "", "Cruz", "Trump", "Kasich", "")
 text(barlabx, unlist(barlaby), barlab, col="white", font=2)
 ```
+
+Are we so accustomed to low voter turn out, that we no longer see the elephant in the room - the large number of eligible voters that don't participate in the elections at all?
