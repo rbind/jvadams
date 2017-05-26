@@ -1,7 +1,7 @@
 ---
 title: Checking Citations
 author: 'JVA'
-date: '2017-05-25'
+date: '2017-05-26'
 slug: checking-citations
 categories:
   - R
@@ -37,8 +37,7 @@ Note that this function does **not** capture citations in which the author is me
 
 ## Room for improvement:
 
-* My current approach is to copy and paste the contents of a manuscript (a Word document) into a text file (removing all images), then using `xCitations()` on the text file. 
-    * This works well for a Word document, but being able to read **the Word file directly** would be an improvement.
-    * This does not work as well for manuscripts in PDF files, because citations that are wrapped across multiple lines would be missed.  Being able to **read the PDF file directly** would be an improvement.
+* My current approach is to copy and paste the contents of a manuscript into a text file (removing all images), then use `xCitations()` on the text file. 
+    * This works well, but it would be an improvement to read the manuscript document directly into R (typically a Word or PDF file).
 * My current approach is to manually compare the returned vector of citations with the list of references in the manuscript.
     * Fully **automating this process** would be an improvement.
