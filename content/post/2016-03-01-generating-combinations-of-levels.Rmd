@@ -1,0 +1,54 @@
+---
+title: Generating Combinations of Levels
+author: JVA
+date: '2016-03-01'
+slug: generating-combinations-of-levels
+categories:
+  - R
+tags:
+  - combinations
+---
+
+I have a linear model with a 4-level factor in it. I wanted to generate all possible level combinations of this factor. I couldn't find a function to help me do this in R, so I created my own. 
+
+```{r}
+combLevel <- function(n) {
+  B <- matrix(1)
+  for(i in 2:n) {
+    maxB <- apply(B, 1, max) + 1
+    B <- B[rep(1:nrow(B), maxB), ]
+    B <- cbind(B, unlist(lapply(maxB, seq, 1, -1)))
+  }
+  dimnames(B) <- list(NULL, NULL)
+  B
+}
+```
+
+With 4 levels, this led to a total of 15 combinations, 1 with 4 levels, 6 with 3 levels, 7 with 2 levels, and 1 with 1 level. 
+
+```{r}
+combLevel(4)
+```
+
+How did I come up with the function? I pictured the problem as a bifurcating tree, assigning each of the original levels to a new level, one at a time. At each step in the tree, the next level would either be different from one of the previous levels, or the same as one of the previous levels. 
+
+```{r message=FALSE, warning=FALSE, fig.height=3}
+library(DiagrammeR)
+library(tidyverse)
+
+nodes <- create_node_df(
+  n = 23,
+  nodes = 1:23,
+  type = "number",
+  label = c(1,  2:1,  3:1, 2:1,  4:1, 3:1, 3:1, 3:1, 2:1))
+
+edges <- create_edge_df(
+  from = rep(1:8, c(2, 3, 2, 4, 3, 3, 3, 2)),
+  to =   2:23,
+  rel = "related")
+
+g <- create_graph(nodes_df=nodes, edges_df=edges) %>%
+  set_global_graph_attrs(attr="layout", value="dot", attr_type="graph")
+
+render_graph(g)
+```

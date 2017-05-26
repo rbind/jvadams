@@ -1,0 +1,38 @@
+---
+title: Reporting Regression Results in R Markdown
+author: JVA
+date: '2016-03-02'
+slug: reporting-simple-linear-regression-results-in-r-markdown
+categories:
+  - R
+tags:
+  - regression
+---
+
+
+
+<p>I recently wrote an R markdown document that incorporated results from a simple linear regression. I wanted the report to be reproducible (should the data change), so I included references to the summary statistics in the text. I was unsure at first how to put the numerator and denominator degrees of freedom for the F statistic as subscripts. But I found a handy page on <a href="https://rstudio-pubs-static.s3.amazonaws.com/18858_0c289c260a574ea08c0f10b944abc883.html">math notation in R markdown</a> that provided the solution I needed. The R markdown text and its result are shown below.</p>
+<p>A few things to note. I defined a function, <code>myprint()</code>, to ensure that the numbers I reported in the text had the specified number of decimal places. Simply using <code>round()</code> won’t always do this. I calculated the P value from the summary of the fitted model object. I defined a character scalar, <code>statement</code>, to insert the appropriate verbiage in the text regarding significance. I used math notation to incorporate the numerator and denominator degrees of freedom for the F statistic as subscripts. Finally, I noted that the subscripts appeared as expected when viewed in Word or in Firefox, but not in Chrome. Not sure why. —</p>
+<pre class="r"><code># define function to easily paste numbers into text
+myprint &lt;- function(x, d=2) {
+  sprintf(paste0(&quot;%.&quot;, d, &quot;f&quot;), round(x, d))
+}
+
+# fake data for simple linear regression
+n &lt;- 100
+x &lt;- 1:n
+y &lt;- rnorm(n)
+
+# fit the regression, save the F statistic and P value
+fit &lt;- lm(y ~ x)
+fstat &lt;- summary(fit)$fstatistic
+pval &lt;- pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
+
+# text regarding significance
+statement &lt;- ifelse(pval &lt; 0.05, &quot;was&quot;, &quot;was not&quot;)</code></pre>
+<p>Now I can use this text (outside of the code chunks) in the R markdown document to create the output below.</p>
+<pre class="r"><code>We conducted a simple linear regression of y on x; 
+y `r statement` significantly related to x 
+($F_{`r fstat[2]`,`r fstat[3]`}$ = `r myprint(fstat[1])`, 
+*P* = `r myprint(pval)`).</code></pre>
+<p>We conducted a simple linear regression of y on x; y was not significantly related to x (<span class="math inline">\(F_{1,98}\)</span> = 0.11, <em>P</em> = 0.74).</p>

@@ -54,7 +54,8 @@ df3 <- colwise(na.locf, fromLast=TRUE)(df2) %>%
   )
 
 ggplot(df3, aes(Year, mean10)) +
-  geom_line(size=1) +
+  geom_hline(yintercept=50, linetype=2) +
+  geom_line(size=1, color="orange") +
   ggtitle("Female ASA Presidents") +
   labs(y = "Female presidents  (% of past 10 y)") +
   theme_bw(base_size=16)

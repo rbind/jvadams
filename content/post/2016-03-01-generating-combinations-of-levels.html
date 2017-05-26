@@ -1,0 +1,67 @@
+---
+title: Generating Combinations of Levels
+author: JVA
+date: '2016-03-01'
+slug: generating-combinations-of-levels
+categories:
+  - R
+tags:
+  - combinations
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/viz/viz.js"></script>
+<link href="/rmarkdown-libs/DiagrammeR-styles/styles.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/grViz-binding/grViz.js"></script>
+
+
+<p>I have a linear model with a 4-level factor in it. I wanted to generate all possible level combinations of this factor. I couldn’t find a function to help me do this in R, so I created my own.</p>
+<pre class="r"><code>combLevel &lt;- function(n) {
+  B &lt;- matrix(1)
+  for(i in 2:n) {
+    maxB &lt;- apply(B, 1, max) + 1
+    B &lt;- B[rep(1:nrow(B), maxB), ]
+    B &lt;- cbind(B, unlist(lapply(maxB, seq, 1, -1)))
+  }
+  dimnames(B) &lt;- list(NULL, NULL)
+  B
+}</code></pre>
+<p>With 4 levels, this led to a total of 15 combinations, 1 with 4 levels, 6 with 3 levels, 7 with 2 levels, and 1 with 1 level.</p>
+<pre class="r"><code>combLevel(4)</code></pre>
+<pre><code>##       [,1] [,2] [,3] [,4]
+##  [1,]    1    2    3    4
+##  [2,]    1    2    3    3
+##  [3,]    1    2    3    2
+##  [4,]    1    2    3    1
+##  [5,]    1    2    2    3
+##  [6,]    1    2    2    2
+##  [7,]    1    2    2    1
+##  [8,]    1    2    1    3
+##  [9,]    1    2    1    2
+## [10,]    1    2    1    1
+## [11,]    1    1    2    3
+## [12,]    1    1    2    2
+## [13,]    1    1    2    1
+## [14,]    1    1    1    2
+## [15,]    1    1    1    1</code></pre>
+<p>How did I come up with the function? I pictured the problem as a bifurcating tree, assigning each of the original levels to a new level, one at a time. At each step in the tree, the next level would either be different from one of the previous levels, or the same as one of the previous levels.</p>
+<pre class="r"><code>library(DiagrammeR)
+library(tidyverse)
+
+nodes &lt;- create_node_df(
+  n = 23,
+  nodes = 1:23,
+  type = &quot;number&quot;,
+  label = c(1,  2:1,  3:1, 2:1,  4:1, 3:1, 3:1, 3:1, 2:1))
+
+edges &lt;- create_edge_df(
+  from = rep(1:8, c(2, 3, 2, 4, 3, 3, 3, 2)),
+  to =   2:23,
+  rel = &quot;related&quot;)
+
+g &lt;- create_graph(nodes_df=nodes, edges_df=edges) %&gt;%
+  set_global_graph_attrs(attr=&quot;layout&quot;, value=&quot;dot&quot;, attr_type=&quot;graph&quot;)
+
+render_graph(g)</code></pre>
+<div id="htmlwidget-1" style="width:672px;height:288px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"diagram":"digraph {\n\n  \"1\" [label = \"1\"] \n  \"2\" [label = \"2\"] \n  \"3\" [label = \"1\"] \n  \"4\" [label = \"3\"] \n  \"5\" [label = \"2\"] \n  \"6\" [label = \"1\"] \n  \"7\" [label = \"2\"] \n  \"8\" [label = \"1\"] \n  \"9\" [label = \"4\"] \n  \"10\" [label = \"3\"] \n  \"11\" [label = \"2\"] \n  \"12\" [label = \"1\"] \n  \"13\" [label = \"3\"] \n  \"14\" [label = \"2\"] \n  \"15\" [label = \"1\"] \n  \"16\" [label = \"3\"] \n  \"17\" [label = \"2\"] \n  \"18\" [label = \"1\"] \n  \"19\" [label = \"3\"] \n  \"20\" [label = \"2\"] \n  \"21\" [label = \"1\"] \n  \"22\" [label = \"2\"] \n  \"23\" [label = \"1\"] \n\"1\"->\"2\" [id = \"1\"] \n\"1\"->\"3\" [id = \"2\"] \n\"2\"->\"4\" [id = \"3\"] \n\"2\"->\"5\" [id = \"4\"] \n\"2\"->\"6\" [id = \"5\"] \n\"3\"->\"7\" [id = \"6\"] \n\"3\"->\"8\" [id = \"7\"] \n\"4\"->\"9\" [id = \"8\"] \n\"4\"->\"10\" [id = \"9\"] \n\"4\"->\"11\" [id = \"10\"] \n\"4\"->\"12\" [id = \"11\"] \n\"5\"->\"13\" [id = \"12\"] \n\"5\"->\"14\" [id = \"13\"] \n\"5\"->\"15\" [id = \"14\"] \n\"6\"->\"16\" [id = \"15\"] \n\"6\"->\"17\" [id = \"16\"] \n\"6\"->\"18\" [id = \"17\"] \n\"7\"->\"19\" [id = \"18\"] \n\"7\"->\"20\" [id = \"19\"] \n\"7\"->\"21\" [id = \"20\"] \n\"8\"->\"22\" [id = \"21\"] \n\"8\"->\"23\" [id = \"22\"] \n}","config":{"engine":null,"options":null}},"evals":[],"jsHooks":[]}</script>

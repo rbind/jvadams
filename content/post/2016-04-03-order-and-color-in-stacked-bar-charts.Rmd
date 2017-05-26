@@ -17,7 +17,7 @@ Let's use [these data](http://dirkmjk.nl/en/2016/01/minister-jeroen-dijsselbloem
 
 For simplicity I share the 2010-2014 data in the R code below, recreating the right 5 columns of the original chart.  I selected similar colors from this [Chart of R Colors](http://research.stowers-institute.org/efg/R/Color/Chart/).
 
-```{r}
+```{r, fig.height=7}
 div <- matrix(
   c(182, 20, 30, 76, 107, 52, 64, 128, 1, 0, 0, 0, 23,
     0, 60, 30, 97, 90, 74, 65, 64, 2, 0, 0, 0, 0,
@@ -69,7 +69,7 @@ It's good practice to assign colors in a meaningful way whenever possible, deliv
 
 I thought it would be interesting and informative to define colors for the companies based on whether their dividends increased or decreased over time, on average.  So, I calculated the average annual change in dividends and assigned ordered positive changes to the "YlOrRd" (yellow-orange-red) color set using the R package **RColorBrewer** and ordered negative changes to the "Blues".
 
-```{r}
+```{r, fig.height=7}
 library(RColorBrewer)
 change <- apply(div3, 1, function(y) lsfit(1:dim(div3)[2], y)$coef[2])
 new.col <- rep(NA, length(change))

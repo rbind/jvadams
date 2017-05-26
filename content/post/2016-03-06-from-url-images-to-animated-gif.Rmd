@@ -1,0 +1,28 @@
+---
+title: From URL Images to Animated GIF
+author: JVA
+date: '2016-03-06'
+slug: from-url-images-to-animated-gif
+categories:
+  - GIPHY
+tags:
+  - animated
+  - GIF
+  - images
+---
+
+I wanted to create an animated GIF using images I found on the internet, the reported cases of Lyme disease in the United States from 2001 to 2014. The images are located on the [CDC website for Lyme disease](http://www.cdc.gov/lyme/stats/index.html), named [map5](http://www.cdc.gov/lyme/images/maps/map5.jpg) through [map18](http://www.cdc.gov/lyme/images/maps/map18.jpg).
+
+My original intention was to explore the capabilities of [R](https://www.r-project.org/) to do this. However, the solutions I found seemed to rely on another software package, [ImageMagick](http://www.imagemagick.org/script/index.php), which I didn't want to install. So, I punted on using R.
+
+Next I tried GIMP (which I already had installed), but I didn't quickly find a way to open/import several images from URLs as layers. So, I punted on using GIMP as well.
+
+Finally, I decided to try [GIPHY](https://giphy.com/). GIPHY had an option to create a slideshow where I could pretty quickly (but still, one at a time) copy and paste each of the image URLs to create an animated GIF. I copied each of the images once, except for the last year (2014), which I copied a few times, so that when the GIF goes through its continuous loop, it pauses for the last year of mapped data.
+
+I'm pleased with the results, but not with the process.  I was looking for a solution with code, and came up short.
+
+[CDC data via GIPHY](https://giphy.com/gifs/lyme-disease-KSSkSjJoipxyE)
+
+I shared the GIF on Twitter ...
+
+`r htmltools::HTML("{{< tweet 706633356163723265 >}}")`

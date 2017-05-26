@@ -1,0 +1,35 @@
+---
+title: Interactive Heatmap of Correlation Matrix
+author: JVA
+date: '2016-03-08'
+slug: interactive-heatmap-of-correlation-matrix
+categories:
+  - R
+tags:
+  - heatmap
+  - interactive
+  - correlation
+---
+
+I saw this tweet yesterday afternoon. 
+
+`r htmltools::HTML("{{< tweet 707272069071945728 >}}")`
+
+Earlier that same morning I had been perusing a presentation that [Karl Broman](http://kbroman.org/) gave at [JSM2015](https://www.amstat.org/meetings/jsm/2015/), [Interactive graphics for high-dimensional genetic data](https://www.biostat.wisc.edu/~kbroman/presentations/JSM2015/). The talk included an interactive heatmap of a correlation matrix (slide 7) that seemed like it would be useful to many folks, not just those working with genetics data.
+
+It was time to give it a try. 
+
+It couldn't have been much simpler. I had to install the R package **qtlcharts**, then use the function `iplotCorr()`. 
+
+```{r message=FALSE, warning=FALSE}
+library(qtlcharts)
+iplotCorr(mat=mtcars, group=mtcars$cyl, reorder=TRUE)
+```
+
+The first argument, `mat=`, is a data matrix where the rows represent observations and the columns represent variables. The second argument, `group=`, applies color coding to the scatterplot. The `reorder=` argument allows the variables to be arranged according to a built-in clustering algorithm. The output is an interactive heatmap of the correlation matrix. Hover over the heatmap to see the row, column, and cell values. Click on a cell to see a scatterplot with symbols colored by group.
+
+I replied to the tweet with the full code.
+
+`r htmltools::HTML("{{< tweet 707322651111337984 >}}")`
+
+One feature I would like to add to this graphic is a legend of some kind for the group colors in the scatterplot. Hovering over the points in the scatterplot gives the name of the row (the observation or individual), but it doesn't specifically decode the color (in my example, the number of cylinders, 4 is red, 6 is green, and 8 is blue).

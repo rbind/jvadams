@@ -1,0 +1,25 @@
+---
+title: Blogging about Code
+author: JVA
+date: '2016-02-28'
+slug: blogging-about-code
+categories:
+  - R
+tags: []
+---
+
+I happened across this tweet today,
+
+`r htmltools::HTML("{{< tweet 703975756146352128 >}}")`
+
+and (offensive language aside) it had the intended effect. I've decided to give blogging about code a try. I particularly appreciated the advice offered by [Garann Means](http://garann.com/dev/2013/how-to-blog-about-code-and-give-zero-fucks/), to keep it low key: 
+
+* no quality control
+* assume no one will ever see it
+* write like yourself
+* drink
+* actually write about code
+* moderate comments
+* don't hit post immediately
+* promote it. or don't.
+* just please please please do it
