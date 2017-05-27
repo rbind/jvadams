@@ -101,7 +101,4 @@ other %>%
     rownames=FALSE,
     caption="Non-SLIS II papers on lamprey in 2003, ordered by number of citations, 2003-2017"
   )
-
-datatable(other, options=list(pageLength=5),
-  caption="Non-SLIS II papers on lamprey in 2003, ordered by number of citations, 2003-2017")
 ```
