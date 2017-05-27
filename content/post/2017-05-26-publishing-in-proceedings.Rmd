@@ -9,11 +9,11 @@ tags:
   - publications
 ---
 
-I am on the steering committee for the [Great Lakes Fishery Commission](http://www.glfc.org/)'s third Sea Lamprey International Symposium, SLIS III.  During one of our planning meetings, another member of the committee commented on the citation rate of some of the papers published in the [SLIS II proceedings](http://www.sciencedirect.com/science/journal/03801330/29/supp/S1).  I thought it might be useful to the group to see the number of citations for all the SLIS II papers.  
+I am on the steering committee for the [Great Lakes Fishery Commission](http://www.glfc.org/)'s third Sea Lamprey International Symposium, SLIS III.  During one of our planning meetings, another member of the committee commented on the citation rate of some of the papers published in the [SLIS II proceedings](http://www.sciencedirect.com/science/journal/03801330/29/supp/S1).  I thought it would be intersting to look at the number of citations for all the SLIS II papers.  
 
-I used [Web of Science](https://webofknowledge.com) to get the number of citations.  First I looked up a few articles in the proceedings and noticed that their accession numbers all started the same.  When I searched for `Accession Number = WOS:0002213213*`, I got all 60 articles, and downloaded their citations (`Create Citation Report`, `Save to Text File`, `Records 1 to 60`) as of 2017-05-26.
+I used [Web of Science](https://webofknowledge.com) to get the number of citations.  First I looked up a few articles in the proceedings and noticed that their accession numbers all started the same.  When I searched for `Accession Number = WOS:0002213213*`, I got all 60 articles and downloaded their citations (`Create Citation Report`, `Save to Text File`, `Records 1 to 60`) as of 2017-05-26.
 
-Then I wrote a function, `read.wos()`, to read in the Web of Science citation report, `savedrecs.txt`.
+Then I wrote a function, `read.wos()`, to read in Web of Science citation reports, in general, named by default `savedrecs.txt`.
 
 ```{r}
 read.wos <- function(filename) {
@@ -30,7 +30,7 @@ read.wos <- function(filename) {
 }
 ```
 
-I used the function to read in the citation report for the SLIS II proceedings, and added a new variable to the report, **theme**, corresponding to the subsections of the special issue.
+I used the function to read in the citation report for the SLIS II proceedings and added a new variable to the report, **theme**, corresponding to the subsections of the special issue.
 
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -58,10 +58,12 @@ ggplot(slis2, aes(reorder(Theme, Citations, median), Citations)) +
   ggtitle("Citations of SLIS II Papers, 2003-2017") +
   labs(x="Theme") +
   coord_flip() +
-  theme_bw(base_size=12)
+  theme_bw(base_size=14)
 ```
 
-Another member of the committee suggested comparing citation metrics from SLIS II lamprey papers and non-SLIS II lamprey papers.  Might there have been an advantage or a disadvantage to scientists publishing their lamprey research in  this special supplement?  To find out, I went back to Web of Science and downloaded a citation report for all 121 articles with `topic = lamprey`, `year = 2003`, and `NOT(Accession Number = WOS:0002213213*)`.
+Another member of the committee suggested comparing citation metrics from SLIS II lamprey papers and non-SLIS II lamprey papers.  Might there have been an advantage or a disadvantage to scientists publishing their lamprey research in  this special supplement?  To find out, I went back to Web of Science and downloaded a citation report for all articles with `topic = lamprey`, `year = 2003`, and `NOT(Accession Number = WOS:0002213213*)`.
+
+In terms of number of citations, there was no clear advantage nor disadvantage to publishing lamprey research in the SLIS II volume.
 
 ```{r, warning=FALSE}
 other <- read.wos("savedrecs (1).txt")
@@ -80,13 +82,25 @@ ggplot(both, aes(reorder(Source, Citations, median), Citations)) +
   ggtitle("Citations of Lamprey Papers Published in 2003, 2003-2017") +
   labs(x="Source") +
   coord_flip() +
-  theme_bw(base_size=12)
+  theme_bw(base_size=14)
 ```
-In terms of number of citations, there was no clear advantage nor disadvantage to publishing lamprey research in the SLIS II volume.
 
 ```{r}
-datatable(slis2, options=list(pageLength=5), 
-  caption="SLIS II papers, ordered by number of citations, 2003-2017")
+slis2 %>%
+  select(Citations, Theme, Authors, Title, Page) %>%
+  datatable(
+    options=list(pageLength=5), 
+    rownames=FALSE,
+    caption="SLIS II papers, ordered by number of citations, 2003-2017"
+  )
+
+other %>%
+  select(Citations, Authors, Title, Source) %>%
+  datatable(
+    options=list(pageLength=5), 
+    rownames=FALSE,
+    caption="Non-SLIS II papers on lamprey in 2003, ordered by number of citations, 2003-2017"
+  )
 
 datatable(other, options=list(pageLength=5),
   caption="Non-SLIS II papers on lamprey in 2003, ordered by number of citations, 2003-2017")
