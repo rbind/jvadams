@@ -102,3 +102,9 @@ other %>%
     caption="Non-SLIS II papers on lamprey in 2003, ordered by number of citations, 2003-2017"
   )
 ```
+
+***
+
+**2017/06/01**
+
+I wanted to follow up with similar information on SLIS I, but Web of Science does not have the [proceedings](http://www.nrcresearchpress.com/toc/cjfas/37/11), published in 1980, in their data base.
