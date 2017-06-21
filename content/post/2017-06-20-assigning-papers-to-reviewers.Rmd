@@ -37,5 +37,12 @@ To ensure that the totals came out as evenly distributed as possible in the end,
 library(jvamisc)
 out <- assignReviewer(data=pubs, Unitvar="orgunit", 
   prefOrd=paste0("Grp", LETTERS[1:8]))
-addmargins(table(out$Reviewer, out$orgunit))
+DT::datatable(out)
 ```
+
+Approximately even distribution of 100 papers published by 8 organizational units (columns), assigned to those same 8 units for review (rows).
+
+```{r}
+knitr::kable(addmargins(table(out$Reviewer, out$orgunit)))
+```
+
