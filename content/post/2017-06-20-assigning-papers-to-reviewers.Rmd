@@ -1,0 +1,41 @@
+---
+title: Assigning Papers to Reviewers
+author: JVA
+date: '2017-06-20'
+slug: assigning-papers-to-reviewers
+categories:
+  - R
+tags:
+  - peer review
+---
+
+We have a longstanding tradition (since *1968!*) at the [Great Lakes Science Center](https://www.glsc.usgs.gov/) of giving an annual award to the best scientific paper published by our staff.  As the number of publications has increased over time, the task of reviewing has become more onerous.  So, we are considering divvying up the reviewing work among all of our scientists, rather than just a small committee.  And we chose to do this by organizational group, to encourage discussion and debate within each group assigned the same set of papers to review. 
+
+It sounded like an easy enough task, but it took me a while to wrap my head around the problem.  
+
+Let's say there were 100 papers published in 2016, and each of those papers was associated with one of 8 organizational units.  
+
+```{r}
+pubs <- data.frame(paper=paste("Paper", format(1:100)),
+  orgunit=sort(sample(paste0("Grp", LETTERS[1:8]), 100, replace=TRUE)))
+DT::datatable(pubs)
+```
+
+How do we assign each paper to a group to review, such that no group is assigned to review one of its own papers and each group gets about the same number of papers to review?
+
+I wrote a function to do the work, `assignReviewer()` in the **[jvamisc](https://github.com/JVAdams/jvamisc)** package.  
+
+I started with the end result in mind, a matrix of the number of papers by review groups (rows) and author groups (columns).
+
+I figured out how many papers each group should review, and if the number of papers was not evenly divisible by the number of groups, I assigned more papers to those groups that published more.
+
+Finally, I filled up the matrix one column (publishing group) at a time, with a random ordering of their papers getting distributed approximately evenly to all the other groups.
+
+To ensure that the totals came out as evenly distributed as possible in the end, I had to prioritize how the matrix was filled.  The trick to making it work was keeping track at every step of not only the total number of papers assigned to each review group, but also which publishing group was coming up next.  For example, if publishing group E was the next column in the matrix to fill, I should fill up reviewer group E with extra papers right now, because I won't be able to assign any papers to them in the next step.
+
+```{r}
+library(jvamisc)
+out <- assignReviewer(data=pubs, Unitvar="orgunit", 
+  prefOrd=paste0("Grp", LETTERS[1:8]))
+addmargins(table(out$Reviewer, out$orgunit))
+```

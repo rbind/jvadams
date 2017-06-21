@@ -1,0 +1,48 @@
+---
+title: Assigning Papers to Reviewers
+author: JVA
+date: '2017-06-20'
+slug: assigning-papers-to-reviewers
+categories:
+  - R
+tags:
+  - peer review
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+
+
+<p>We have a longstanding tradition (since <em>1968!</em>) at the <a href="https://www.glsc.usgs.gov/">Great Lakes Science Center</a> of giving an annual award to the best scientific paper published by our staff. As the number of publications has increased over time, the task of reviewing has become more onerous. So, we are considering divvying up the reviewing work among all of our scientists, rather than just a small committee. And we chose to do this by organizational group, to encourage discussion and debate within each group assigned the same set of papers to review.</p>
+<p>It sounded like an easy enough task, but it took me a while to wrap my head around the problem.</p>
+<p>Let’s say there were 100 papers published in 2016, and each of those papers was associated with one of 8 organizational units.</p>
+<pre class="r"><code>pubs &lt;- data.frame(paper=paste(&quot;Paper&quot;, format(1:100)),
+  orgunit=sort(sample(paste0(&quot;Grp&quot;, LETTERS[1:8]), 100, replace=TRUE)))
+DT::datatable(pubs)</code></pre>
+<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99","100"],["Paper   1","Paper   2","Paper   3","Paper   4","Paper   5","Paper   6","Paper   7","Paper   8","Paper   9","Paper  10","Paper  11","Paper  12","Paper  13","Paper  14","Paper  15","Paper  16","Paper  17","Paper  18","Paper  19","Paper  20","Paper  21","Paper  22","Paper  23","Paper  24","Paper  25","Paper  26","Paper  27","Paper  28","Paper  29","Paper  30","Paper  31","Paper  32","Paper  33","Paper  34","Paper  35","Paper  36","Paper  37","Paper  38","Paper  39","Paper  40","Paper  41","Paper  42","Paper  43","Paper  44","Paper  45","Paper  46","Paper  47","Paper  48","Paper  49","Paper  50","Paper  51","Paper  52","Paper  53","Paper  54","Paper  55","Paper  56","Paper  57","Paper  58","Paper  59","Paper  60","Paper  61","Paper  62","Paper  63","Paper  64","Paper  65","Paper  66","Paper  67","Paper  68","Paper  69","Paper  70","Paper  71","Paper  72","Paper  73","Paper  74","Paper  75","Paper  76","Paper  77","Paper  78","Paper  79","Paper  80","Paper  81","Paper  82","Paper  83","Paper  84","Paper  85","Paper  86","Paper  87","Paper  88","Paper  89","Paper  90","Paper  91","Paper  92","Paper  93","Paper  94","Paper  95","Paper  96","Paper  97","Paper  98","Paper  99","Paper 100"],["GrpA","GrpA","GrpA","GrpA","GrpA","GrpA","GrpA","GrpA","GrpA","GrpA","GrpA","GrpA","GrpA","GrpB","GrpB","GrpB","GrpB","GrpB","GrpB","GrpB","GrpB","GrpB","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpC","GrpD","GrpD","GrpD","GrpD","GrpD","GrpD","GrpD","GrpD","GrpD","GrpD","GrpD","GrpE","GrpE","GrpE","GrpE","GrpE","GrpE","GrpE","GrpE","GrpE","GrpE","GrpE","GrpF","GrpF","GrpF","GrpF","GrpF","GrpF","GrpF","GrpF","GrpF","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpG","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH","GrpH"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>paper<\/th>\n      <th>orgunit<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
+<p>How do we assign each paper to a group to review, such that no group is assigned to review one of its own papers and each group gets about the same number of papers to review?</p>
+<p>I wrote a function to do the work, <code>assignReviewer()</code> in the <strong><a href="https://github.com/JVAdams/jvamisc">jvamisc</a></strong> package.</p>
+<p>I started with the end result in mind, a matrix of the number of papers by review groups (rows) and author groups (columns).</p>
+<p>I figured out how many papers each group should review, and if the number of papers was not evenly divisible by the number of groups, I assigned more papers to those groups that published more.</p>
+<p>Finally, I filled up the matrix one column (publishing group) at a time, with a random ordering of their papers getting distributed approximately evenly to all the other groups.</p>
+<p>To ensure that the totals came out as evenly distributed as possible in the end, I had to prioritize how the matrix was filled. The trick to making it work was keeping track at every step of not only the total number of papers assigned to each review group, but also which publishing group was coming up next. For example, if publishing group E was the next column in the matrix to fill, I should fill up reviewer group E with extra papers right now, because I won’t be able to assign any papers to them in the next step.</p>
+<pre class="r"><code>library(jvamisc)
+out &lt;- assignReviewer(data=pubs, Unitvar=&quot;orgunit&quot;, 
+  prefOrd=paste0(&quot;Grp&quot;, LETTERS[1:8]))
+addmargins(table(out$Reviewer, out$orgunit))</code></pre>
+<pre><code>##       
+##        GrpA GrpB GrpC GrpD GrpE GrpF GrpG GrpH Sum
+##   GrpA    0    1    2    2    1    2    3    2  13
+##   GrpB    2    0    2    1    2    1    2    2  12
+##   GrpC    2    1    0    1    1    2    3    3  13
+##   GrpD    2    1    2    0    2    1    2    2  12
+##   GrpE    2    1    2    2    0    1    2    2  12
+##   GrpF    1    2    2    1    2    0    2    2  12
+##   GrpG    2    1    2    2    2    1    0    3  13
+##   GrpH    2    2    2    2    1    1    3    0  13
+##   Sum    13    9   14   11   11    9   17   16 100</code></pre>
