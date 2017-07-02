@@ -1,0 +1,105 @@
+---
+title: "Book Recommendations and APIs"
+author: "JVA"
+date: '2017-07-01'
+slug: book-recommendations-digging-deeper
+tags:
+- publications
+- books
+- API
+categories: R
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+```
+
+
+It all started with my sister.  She's a science writer.  And, as you might imagine, she and many of her friends are avid readers.  So her recent request for book recommendations on Facebook quickly grew to an unmanageably long list.
+
+> Books, people. I need book recommendations. Please reply with one book you that's stuck with you long after you closed it for the last time.
+
+Wouldn't it be handy if someone pulled all these recommendations together?  Who would be crazy enough to do that?  That's where I come in.  I copied the titles and authors into a spreadsheet, and shared it on [GitHub](https://github.com/JVAdams/vishy/blob/gh-pages/JillsFBBookList.csv). 
+
+```{r}
+library(knitr)
+dat <- read.csv(url("https://github.com/JVAdams/vishy/raw/gh-pages/JillsFBBookList.csv"))
+kable(head(dat[, c("Title", "Author")]))
+```
+
+But, the list wasn't very informative.  What year were the books published?  Were they fiction or nonfiction?
+
+I went looking for a data base of books that was accessible with an API (application programming interface) and had an [R]() package associated with it.  I found **[rgoodreads](https://github.com/Famguy/rgoodreads)**, an R package for the [Goodreads](https://www.goodreads.com/) API.  
+
+I had to sign up to get an access key.  Then, it was easy to get information on the book by supplying the title, using the function `book_by_title()`.
+
+```{r, eval=FALSE}
+Sys.setenv(GOODREADS_KEY = "YOUR_KEY_HERE")
+```
+
+```{r, echo=FALSE}
+Sys.setenv(GOODREADS_KEY = "q4ALxnYK5GZtIGBLa3Q")
+```
+
+```{r}
+library(tidyverse)
+library(rgoodreads)
+
+books <- lapply(dat$Title, book_by_title)
+books2 <- bind_rows(books) %>%
+  rename(
+    year=publication_year,
+    rating=average_rating
+  ) %>%
+  mutate(
+    author=paste0(sapply(strsplit(sapply(authors, "[", 1), ":"), "[", 1),
+      if_else(sapply(authors, length)>1, " +", ""))
+    ) %>%
+  select(title, author, year, rating, isbn)
+```
+
+The [Goodreads API](https://www.goodreads.com/api) provided information on the title, authors, date of publication, reviewer rating, and the ISBN (International Standard Book Number).  But, much to my suprise, there was no indication of book genre, so I still couldn't tell if it was fiction or nonfiction.
+
+```{r}
+kable(head(books2))
+```
+
+Back to the drawing board.  I found another API from [WorldCat](http://www.worldcat.org/), *the world's largest network of library content and services*. WorldCat has several APIs, the one that seemed to meet my needs was [Classify](https://platform.worldcat.org/api-explorer/apis/Classify).  This API could take an ISBN and spit out a data summary that includes the classification from the Dewey Decimal System. I could use the DDS numbers to assign the books to one of 10 classes, which I found on [Wikipedia](https://en.wikipedia.org/wiki/Dewey_Decimal_Classification#Classes).
+
+```{r}
+# Dewey Decimal System classes from 0 to 900
+ddc09 <- c("General works, Computer science and Information", 
+  "Philosophy and psychology", "Religion", "Social sciences", "Language", 
+  "Pure Science", "Technology", "Arts & recreation", "Literature", 
+  "History & geography")
+```
+
+WorldCat did not have DDS numbers for all the book titles in my list, but for those that it did have, it was very helpful.
+
+```{r}
+library(httr)
+library(XML)
+ddc <- sapply(books2$isbn, function(isbn) {
+  query=paste0("http://classify.oclc.org/classify2/Classify?isbn=", 
+      isbn, "&summary=true")
+  qraw <- GET(query)
+  qlist <- xmlToList(rawToChar(qraw$content))
+  if("recommendations" %in% names(qlist)) {
+    out <- as.numeric(qlist$recommendations$ddc$mostRecent["sfa"])
+  } else {
+    out <- NA
+  }
+  out
+})
+
+books3 <- books2 %>%
+  mutate(
+    ddc = unname(ddc),
+    class = if_else(is.na(ddc), "Unknown", ddc09[floor(ddc/100) + 1])
+  ) %>%
+  arrange(class, desc(rating)) %>%
+  select(title, author, year, rating, class)
+
+library(DT)
+datatable(books3)
+```
