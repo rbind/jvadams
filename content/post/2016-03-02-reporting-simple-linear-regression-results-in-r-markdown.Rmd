@@ -2,7 +2,7 @@
 title: Reporting Regression Results in R Markdown
 author: JVA
 date: '2016-03-02'
-slug: reporting-simple-linear-regression-results-in-r-markdown
+slug: reporting-regression-results-in-r-markdown
 categories:
   - R
 tags:
