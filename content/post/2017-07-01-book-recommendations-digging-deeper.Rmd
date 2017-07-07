@@ -1,8 +1,8 @@
 ---
-title: "Book Recommendations and APIs"
+title: "Books and APIs"
 author: "JVA"
 date: '2017-07-01'
-slug: book-recommendations-digging-deeper
+slug: books-and-apis
 tags:
 - publications
 - books
