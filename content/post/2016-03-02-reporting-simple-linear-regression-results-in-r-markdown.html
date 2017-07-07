@@ -2,7 +2,7 @@
 title: Reporting Regression Results in R Markdown
 author: JVA
 date: '2016-03-02'
-slug: reporting-simple-linear-regression-results-in-r-markdown
+slug: reporting-regression-results-in-r-markdown
 categories:
   - R
 tags:
@@ -35,4 +35,4 @@ statement &lt;- ifelse(pval &lt; 0.05, &quot;was&quot;, &quot;was not&quot;)</co
 y `r statement` significantly related to x 
 ($F_{`r fstat[2]`,`r fstat[3]`}$ = `r myprint(fstat[1])`, 
 *P* = `r myprint(pval)`).</code></pre>
-<p>We conducted a simple linear regression of y on x; y was not significantly related to x (<span class="math inline">\(F_{1,98}\)</span> = 0.11, <em>P</em> = 0.74).</p>
+<p>We conducted a simple linear regression of y on x; y was not significantly related to x (<span class="math inline">\(F_{1,98}\)</span> = 0.17, <em>P</em> = 0.68).</p>
