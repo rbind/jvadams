@@ -111,7 +111,7 @@ moviepair <- function(People, Which=c(NA, NA)) {
 moviepair(c("Tina Fey", "Amy Poehler"))
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=4}
 library(plotly)
 
 moviepair <- function(People, Which=c(NA, NA)) {
