@@ -1,0 +1,144 @@
+---
+title: Movie Pairs
+author: JVA
+date: '2017-07-08'
+slug: movie-pairs
+categories:
+  - R
+tags:
+  - API
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+```
+
+Have you ever wanted to get a list of movies that a particular pair of people have worked on?  For example, what movies have Tina Fey and Amy Poehler been in together?  I've not seen a search for movie pairs addressed elsewhere, so I thought I'd give it a shot.
+
+I looked for an R package that would help me access a movie API, for free.  I found **[TMDb](https://CRAN.R-project.org/package=TMDb)**, which provides an R interface to [The Movie Database API](https://developers.themoviedb.org/3/getting-started).  First, I had to [sign up](https://www.themoviedb.org/account/signup) for an account.  Then I had to login and apply for an API key.
+
+```{r, eval=FALSE}
+Sys.setenv(TMDB_API_KEY = "YOUR_KEY_HERE")
+```
+
+The first thing I want to do is find all of the movies associated with a given person.  I wrote functions to handle this in two steps: finding the ID of a person with `name2id()`, and finding the movies associated with an ID with `id2movie()`.
+
+Finding the ID of a person was a little tricky because sometimes the `search_person()` function yields more than one person for a provided name.  In this case, I show a data frame of names and the movies they're known for.  The user will then have to indicate in future calls which person from this data frame they mean.  I tested it out a nonexistent name, a fragment of a name, and a name with more than one person.
+
+```{r}
+library(tidyverse)
+library(TMDb)
+
+name2id <- function(who, which=NA, mykey=Sys.getenv("TMDB_API_KEY")) {
+  peeps <- search_person(mykey, who)
+  if(peeps$total_results<1) {
+    warning(paste("No", who, "found."))
+    return(NA)
+  } else {
+    peeps2 <- peeps$results
+    if(peeps$total_results>1) {
+      if(is.na(which)) {
+        peeps3 <- cbind(name=peeps2$name, 
+          works=sapply(peeps2$known_for, function(df) 
+            paste(df$title, collapse=", ")))
+        print(peeps3)
+        warning("Multiple people found.  Rerun setting the argument 'which' to the number of the person you mean.")
+        return(NA)
+      } else {
+        peeps2 <- peeps2[which, ]
+      }
+    }
+  }
+  return(peeps2$id)
+}
+
+name2id("sigour")
+name2id("xlty")
+name2id("Ron Howard")
+name2id("Ron Howard", 1)
+```
+
+Getting the movies for a given ID is also a bit tricky, because the `discover_movie()` function returns only one page of 20 movies at a time.
+
+```{r}
+id2movies <- function(id, mykey=Sys.getenv("TMDB_API_KEY")) {
+  init <- discover_movie(mykey, with_people=id)
+  npages <- init$total_pages
+  movie.list <- lapply(1:npages, function(p)
+    discover_movie(mykey, with_people=id, page=p)$results)
+  movies <- bind_rows(movie.list) %>%
+    mutate(released=as.Date(release_date)) %>%
+    arrange(!is.na(released), desc(released)) %>%
+    select(id, title, released)
+  return(movies)
+}
+
+library(DT)
+datatable(id2movies(name2id("Emma Stone")))
+```
+
+<br>
+
+Now I can apply these functions to a pair of names, then combine their movies to see which ones overlap.  (Hover over points to identify the release year and movie title.)
+
+```{r, eval=FALSE}
+library(plotly)
+
+moviepair <- function(People, Which=c(NA, NA)) {
+  Person1 <- id2movies(name2id(People[1], Which[1])) %>%
+    mutate(person1 = -1)
+  Person2 <- id2movies(name2id(People[2], Which[2])) %>%
+    mutate(person2 = 1)
+  pair <- full_join(Person1, Person2) %>%
+    mutate(
+      person1 = replace(person1, is.na(person1), 0),
+      person2 = replace(person2, is.na(person2), 0),
+      Who=factor(recode(person1+person2+2, 
+        `1`=People[1], `2`="Both", `3`=People[2]),
+        levels=c(People[1], "Both", People[2]))
+    )
+  if(sum(pair$Who=="Both") < 1) stop("No movies in common.")
+  p <- ggplot(pair, 
+    aes(Who, released, text=paste0(substring(released, 1, 4), ": ", title))) +
+    geom_point() +
+    geom_text(data=pair[pair$Who=="Both", ], aes(Who, released, 
+      label=paste("\n", title))) +
+    labs(x="", y="") +
+    theme_bw()
+  ggplotly(p, tooltip="text")
+}
+
+moviepair(c("Tina Fey", "Amy Poehler"))
+```
+
+```{r, echo=FALSE}
+library(plotly)
+
+moviepair <- function(People, Which=c(NA, NA)) {
+  Person1 <- id2movies(name2id(People[1], Which[1])) %>%
+    mutate(person1 = -1)
+  Person2 <- id2movies(name2id(People[2], Which[2])) %>%
+    mutate(person2 = 1)
+  pair <- full_join(Person1, Person2) %>%
+    mutate(
+      person1 = replace(person1, is.na(person1), 0),
+      person2 = replace(person2, is.na(person2), 0),
+      Who=factor(recode(person1+person2+2, 
+        `1`=People[1], `2`="Both", `3`=People[2]),
+        levels=c(People[1], "Both", People[2]))
+    )
+  if(sum(pair$Who=="Both") < 1) stop("No movies in common.")
+  p <- ggplot(pair, 
+    aes(Who, released, text=paste0(substring(released, 1, 4), ": ", title))) +
+    geom_point() +
+    geom_text(data=pair[pair$Who=="Both", ], aes(Who, released, 
+      label=paste("\n", title))) +
+    labs(x="", y="") +
+    theme_bw()
+  return(p)
+}
+
+ggplotly(moviepair(c("Tina Fey", "Amy Poehler")), tooltip="text")
+```
+
+I'd like to make this blog post interactive, so anyone could put in a pair of names and see the resulting plot of movies.  A Shiny app would do it.  Perhaps another day.

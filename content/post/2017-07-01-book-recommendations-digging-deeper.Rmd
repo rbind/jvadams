@@ -37,10 +37,6 @@ I had to sign up to get an access key.  Then, it was easy to get information on 
 Sys.setenv(GOODREADS_KEY = "YOUR_KEY_HERE")
 ```
 
-```{r, echo=FALSE}
-Sys.setenv(GOODREADS_KEY = "q4ALxnYK5GZtIGBLa3Q")
-```
-
 ```{r}
 library(tidyverse)
 library(rgoodreads)
