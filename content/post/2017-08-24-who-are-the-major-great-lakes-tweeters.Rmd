@@ -1,0 +1,53 @@
+---
+title: Who Tweets about the Great Lakes?
+author: JVA
+date: '2017-08-26'
+slug: who-are-the-major-great-lakes-tweeters
+categories:
+  - R
+tags:
+  - Twitter
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+```
+
+Twitter is one way that I keep up to date on Great Lakes news.  Might I be missing out on some good Great Lakes tweeters?  I used the [R](https://www.r-project.org/about.html) package [rtweet](https://cran.r-project.org/package=rtweet) to investigate (see this [vignette](https://cran.r-project.org/web/packages/rtweet/vignettes/intro.html)).
+
+```{r}
+library(rtweet)
+library(tidyverse)
+library(RColorBrewer)
+library(lubridate)
+
+# look at the last ntwee
+ntweets <- 18000
+gltweets <- search_tweets('
+  "#GreatLakes" OR "Great Lakes" OR
+  "#LakeSuperior" OR "Lake Superior" OR
+  "#LakeMichigan" OR "Lake Michigan" OR
+  "#LakeHuron" OR "Lake Huron" OR
+  "#LakeErie" OR "Lake Erie" OR
+  "#LakeOntario" OR "Lake Ontario"', 
+  n=ntweets, include_rts=FALSE, verbose=FALSE) 
+goback <- signif(diff(range(gltweets$created_at)), digits=2)
+```
+
+First, I looked at the last `r format(ntweets, big.mark=",")` tweets that mentioned the Great Lakes.  These tweets go back `r signif(goback, 2)` `r units(goback)`.
+
+Then I counted up the number of Great Lakes tweets for each tweeter.
+
+```{r}
+gltweeters <- gltweets %>%
+  users_data() %>%
+  count(screen_name, name, description, followers_count) %>%
+  arrange(-n, -followers_count) %>%
+  select(No.GL.tweets=n, Handle=screen_name, Name=name,
+    Description=description, No.followers=followers_count)
+
+library(DT)
+datatable(gltweeters, rownames=FALSE)
+```
+
+Not as enlightening as I had hoped.  I wanted to standardize the number of Great Lakes tweets by the total number of tweets from each person over the same time period, but I couldn't figure out how to do that.
