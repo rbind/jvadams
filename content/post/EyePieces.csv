@@ -1,0 +1,73 @@
+Make,Model,AFoV,Diameter,Length,Price
+Tele Vue,Ethos,100,2,21,830
+Tele Vue,Ethos,100,2,17,735
+Tele Vue,Ethos,101,1.25,13,610
+Tele Vue,Ethos,102,1.25,10,610
+Tele Vue,Ethos,103,1.25,8,575
+Tele Vue,Ethos,104,1.25,6,575
+Tele Vue,Ethos,105,1.25,4.7,610
+Tele Vue,Ethos,106,1.25,3.7,610
+Tele Vue,Nagler,82,2,31,650
+Tele Vue,Nagler,82,2,22,495
+Tele Vue,Nagler,82,2,17,410
+Tele Vue,Nagler,83,1.25,16,340
+Tele Vue,Nagler,84,1.25,13,310
+Tele Vue,Nagler,85,1.25,11,310
+Tele Vue,Nagler,86,1.25,9,310
+Tele Vue,Nagler,87,1.25,7,310
+Tele Vue,Nagler,88,1.25,5,310
+Tele Vue,Nagler,89,1.25,3.5,310
+Tele Vue,Nagler,90,1.25,2.5,310
+Tele Vue,Panoptic,68,2,41,510
+Tele Vue,Panoptic,68,2,35,380
+Tele Vue,Panoptic,68,2,27,340
+Tele Vue,Panoptic,69,1.25,24,310
+Tele Vue,Panoptic,70,1.25,19,245
+Tele Vue,DeLite,62,1.25,18.2,250
+Tele Vue,DeLite,62,1.25,15,250
+Tele Vue,DeLite,62,1.25,13,250
+Tele Vue,DeLite,62,1.25,11,250
+Tele Vue,DeLite,62,1.25,9,250
+Tele Vue,DeLite,62,1.25,7,250
+Tele Vue,DeLite,62,1.25,5,250
+Tele Vue,DeLite,62,1.25,4,250
+Tele Vue,DeLite,62,1.25,3,250
+Tele Vue,Delos,72,1.25,3.5,340
+Tele Vue,Delos,72,1.25,4.5,340
+Tele Vue,Delos,72,1.25,6,340
+Tele Vue,Delos,72,1.25,8,340
+Tele Vue,Delos,72,1.25,10,340
+Tele Vue,Delos,72,1.25,12,340
+Tele Vue,Delos,72,1.25,14,340
+Tele Vue,Delos,72,1.25,17.3,340
+Orion,Lanthanum,80,2,14,270
+Orion,Lanthanum,80,2,20,270
+Orion,Lanthanum,81,1.25,4,270
+Orion,Lanthanum,82,1.25,6,270
+Orion,Lanthanum,83,1.25,9,270
+Orion,Edge-On,55,1.25,3,100
+Orion,Edge-On,55,1.25,5,100
+Orion,Edge-On,55,1.25,6,100
+Orion,Edge-On,55,1.25,9,100
+Orion,Edge-On,55,1.25,12.5,100
+Orion,Edge-On,55,1.25,14.5,100
+Orion,DeepView,56,2,28,70
+Orion,DeepView,56,2,35,73
+Orion,DeepView,52,2,42,80
+Orion,Q70,70,2,26,90
+Orion,Q70,70,2,32,90
+Orion,Q70,70,2,38,100
+Orion,Stratus,68,1.25,3.5,130
+Orion,Stratus,68,1.25,5,130
+Orion,Stratus,68,1.25,8,130
+Orion,Stratus,68,1.25,13,130
+Orion,Stratus,68,1.25,17,130
+Orion,Sirius,52,1.25,6.3,30
+Orion,Sirius,52,1.25,7.5,30
+Orion,Sirius,52,1.25,10,30
+Orion,Sirius,52,1.25,12.5,30
+Orion,Sirius,52,1.25,17,30
+Orion,Sirius,52,1.25,20,30
+Orion,Sirius,52,1.25,25,30
+Orion,Sirius,52,1.25,32,40
+Orion,Sirius,52,1.25,40,40

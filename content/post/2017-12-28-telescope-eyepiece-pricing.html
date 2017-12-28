@@ -1,0 +1,97 @@
+---
+title: Telescope Eyepiece Pricing
+author: JVA
+date: '2017-12-28'
+slug: telescope-eyepiece-pricing
+categories:
+  - R
+tags:
+  - telescope
+  - price
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+
+
+<p>If you are a newbie astronomer like me, you may be confused by the variety and pricing of eyepieces available.</p>
+<p>I used information from the <a href="https://www.telescope.com/content.jsp?pageName=eCatalog">Orion Holiday 2017</a> catalog on individually sold eyepieces, including the apparent field of view (AFoV from 52 to 106 degrees), diameter (1.25&quot; and 2“), and length (2.5 to 42 mm) to predict the price ($30-$830, in US dollars).</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre class="r"><code>EP &lt;- read.csv(&quot;EyePieces.csv&quot;) %&gt;%
+  mutate(
+    fDiam = as.factor(Diameter)
+  )
+
+DT::datatable(
+  EP[, c(&quot;Make&quot;, &quot;Model&quot;, &quot;AFoV&quot;, &quot;Diameter&quot;, &quot;Length&quot;, &quot;Price&quot;)],
+  options=list(pageLength=5))</code></pre>
+<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72"],["Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Tele Vue","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion","Orion"],["Ethos","Ethos","Ethos","Ethos","Ethos","Ethos","Ethos","Ethos","Nagler","Nagler","Nagler","Nagler","Nagler","Nagler","Nagler","Nagler","Nagler","Nagler","Nagler","Panoptic","Panoptic","Panoptic","Panoptic","Panoptic","DeLite","DeLite","DeLite","DeLite","DeLite","DeLite","DeLite","DeLite","DeLite","Delos","Delos","Delos","Delos","Delos","Delos","Delos","Delos","Lanthanum","Lanthanum","Lanthanum","Lanthanum","Lanthanum","Edge-On","Edge-On","Edge-On","Edge-On","Edge-On","Edge-On","DeepView","DeepView","DeepView","Q70","Q70","Q70","Stratus","Stratus","Stratus","Stratus","Stratus","Sirius","Sirius","Sirius","Sirius","Sirius","Sirius","Sirius","Sirius","Sirius"],[100,100,101,102,103,104,105,106,82,82,82,83,84,85,86,87,88,89,90,68,68,68,69,70,62,62,62,62,62,62,62,62,62,72,72,72,72,72,72,72,72,80,80,81,82,83,55,55,55,55,55,55,56,56,52,70,70,70,68,68,68,68,68,52,52,52,52,52,52,52,52,52],[2,2,1.25,1.25,1.25,1.25,1.25,1.25,2,2,2,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,2,2,2,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,2,2,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,2,2,2,2,2,2,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25,1.25],[21,17,13,10,8,6,4.7,3.7,31,22,17,16,13,11,9,7,5,3.5,2.5,41,35,27,24,19,18.2,15,13,11,9,7,5,4,3,3.5,4.5,6,8,10,12,14,17.3,14,20,4,6,9,3,5,6,9,12.5,14.5,28,35,42,26,32,38,3.5,5,8,13,17,6.3,7.5,10,12.5,17,20,25,32,40],[830,735,610,610,575,575,610,610,650,495,410,340,310,310,310,310,310,310,310,510,380,340,310,245,250,250,250,250,250,250,250,250,250,340,340,340,340,340,340,340,340,270,270,270,270,270,100,100,100,100,100,100,70,73,80,90,90,100,130,130,130,130,130,30,30,30,30,30,30,30,40,40]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Make<\/th>\n      <th>Model<\/th>\n      <th>AFoV<\/th>\n      <th>Diameter<\/th>\n      <th>Length<\/th>\n      <th>Price<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"columnDefs":[{"className":"dt-right","targets":[3,4,5,6]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<p>What factors contribute to the pricing? I fit a model predicting price from the three metrics available on all eyepieces (and all two-way interactions). A square root was suggested for the response (Box-Cox transformation). Apparent field of view was the strongest predictor of eyepiece price, with length (and its interaction with AFoV) also contributing.</p>
+<pre class="r"><code>EP %&gt;%
+  glm(Price ~ (AFoV + Length + fDiam)^2, data=.) %&gt;%
+  MASS::boxcox()
+abline(v=0.5, col=&quot;red&quot;, lty=2, lwd=2)</code></pre>
+<p><img src="/post/2017-12-28-telescope-eyepiece-pricing_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>fit &lt;- step(
+  glm(sqrt(Price) ~ (AFoV + Length + fDiam)^2, data=EP), trace=0)
+summary(fit)$coef</code></pre>
+<pre><code>##                 Estimate  Std. Error    t value     Pr(&gt;|t|)
+## (Intercept) -1.131293845 2.820420698 -0.4011082 6.895981e-01
+## AFoV         0.217372305 0.038755751  5.6087754 4.045853e-07
+## Length      -0.596128425 0.176439168 -3.3786626 1.209211e-03
+## AFoV:Length  0.009523264 0.002636975  3.6114350 5.779988e-04</code></pre>
+<pre class="r"><code>PopularAFoV &lt;- c(52, 62, 72, 82, 100)
+
+Predplot &lt;- expand.grid(AFoV=PopularAFoV, Length=2:42) %&gt;%
+  mutate(
+    Predicted = predict(fit, newdata=.)^2,
+    fAFoV = factor(AFoV, levels=rev(sort(unique(AFoV))))
+  )
+
+ggplot(EP, aes(Length, Price)) +
+  geom_line(map=aes(Length, Predicted, color=fAFoV, group=fAFoV), 
+    size=1, data=Predplot) +
+  scale_color_discrete(name=&quot;AFoV&quot;) +
+  geom_point(aes(shape=fDiam, size=sqrt(AFoV))) +
+  scale_shape_manual(values=c(1, 16), name=&quot;Diameter&quot;) +
+  scale_size_continuous(name=&quot;AFoV&quot;, breaks=rev(sqrt(PopularAFoV)), 
+    labels=rev(PopularAFoV)) +
+  labs(x=&quot;Length  (mm)&quot;, y=&quot;Price  (USD)&quot;,
+    title=&quot;Telescope Eyepiece Price Depends on AFoV and Length&quot;,  
+    subtitle=
+      &quot;Catalog prices are symbols, predicted relation is lines.&quot;) +
+  theme_bw(base_size=14)</code></pre>
+<p><img src="/post/2017-12-28-telescope-eyepiece-pricing_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<p>I was curious if and how the make and model of the eyepieces contributed to the prices. So, I calculated the difference between the actual price and the predicted price.</p>
+<pre class="r"><code>EP.pred &lt;- EP %&gt;%
+  mutate(
+    Predicted = fit$fitted.values^2,
+    Pricediff = Price - Predicted,
+    BM = paste0(Make, &quot;: &quot;, Model)
+  )
+
+EP.mean &lt;- EP.pred %&gt;%
+  group_by(BM) %&gt;%
+  summarise(mean=mean(Pricediff)) %&gt;%
+  arrange(mean)
+
+EP.BM &lt;- EP.pred %&gt;%
+  mutate(
+    BM = factor(BM, levels=EP.mean$BM)
+  )
+
+ggplot(EP.BM, aes(BM, Pricediff)) +
+  geom_hline(yintercept=0, size=1, color=&quot;gray&quot;) +
+  geom_boxplot(fill=&quot;darkolivegreen1&quot;, color=&quot;blue&quot;) +
+  coord_flip() +
+  labs(y=&quot;Actual minus predicted price  (USD)&quot;, x=&quot;Make: Model&quot;,
+    title=&quot;Eyepiece Price Relative to Make and Model&quot;,
+    subtitle=&quot;Price difference after accounting for AFoV and length.&quot;) +
+  theme_bw(base_size=14)</code></pre>
+<p><img src="/post/2017-12-28-telescope-eyepiece-pricing_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>Most of the Tele Vue models are priced higher than predicted, and most of the Orion models are priced lower than predicted. Reading the descriptions in the catalog, it’s not obvious to me what is contributing to these differences.</p>

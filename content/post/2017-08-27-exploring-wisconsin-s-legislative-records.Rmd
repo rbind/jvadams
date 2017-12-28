@@ -1,0 +1,64 @@
+---
+title: Exploring Wisconsin's Legislative Records
+author: JVA
+date: '2017-08-27'
+slug: exploring-wisconsin-s-legislative-records
+categories:
+  - R
+tags:
+  - politics
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE, eval=FALSE)
+```
+
+I wanted to explore the voting history of members of Wisconsin's State House and Senate.  Voting history is accessible for one member or one vote at a time  [on-line](http://docs.legis.wisconsin.gov), but I couldn't find any readily available summary data for download.  So I thought I'd try scraping the data from the web.
+
+
+
+To visualize the votes of the senators, I created a matrix of the votes of each senator on each issue (1 = YAY, 0 = Nay).
+
+```{r}
+
+
+library(tidyverse)
+
+
+smry <- dflong %>%
+  mutate(
+    sia = paste(Source, Session, Issue, Action, sep="-"),
+  ) %>%
+  group_by(sia, Representative) %>%
+  summarise(mean.aye = mean(Vote=="Aye", na.rm=TRUE))
+
+i.mean <- with(smry, tapply(mean.aye, sia, mean, na.rm=TRUE))
+r.mean <- with(smry, tapply(mean.aye, Representative, mean, na.rm=TRUE))
+
+library(stringdist)
+one.match <- amatch(casefold(names(r.mean)), casefold(info$Last), maxDist=1)
+name.match <- amatch(casefold(smry$Representative), casefold(info$Last), 
+  maxDist=1)
+smry$Representative <- info$Last[name.match]
+
+
+
+
+
+missed.vote.count <- with(dflong, 
+  tapply(is.na(Vote), Representative, sum))
+
+r.ord <- order(r.mean, info$Party[one.match], missed.vote.count)
+i.ord <- order(i.mean)
+
+m <- with(smry, tapply(mean.aye, list(Representative, sia), mean))[
+  r.ord, i.ord]
+
+library(iheatmapr)
+main_heatmap(m, name="Aye", colors=c("navy", "gold")) %>% 
+  add_row_annotation(data.frame("Party"=info$Party[one.match][r.ord]),
+    colors=list("Party"=c("blue", "red"))) %>% 
+  add_row_barplot(
+    x=missed.vote.count[r.ord],
+    tracename="Missed votes", layout=list(title="Missed votes"))
+```
