@@ -1,0 +1,61 @@
+---
+title: Government Shutdowns
+author: JVA
+date: '2018-01-21'
+slug: government-shutdowns
+categories:
+  - R
+tags:
+  - politics
+---
+
+
+
+<p>Facing another U.S. government shutdown, I came across an article on <a href="https://www.vox.com/policy-and-politics/2018/1/19/16905584/government-shutdown-history-clinton-obama-explained">Vox.com</a> describing the 18 previous shutdowns. The article stated that <em>“… they’re a relatively recent development … the result of the Congressional Budget Act of 1974.”</em></p>
+<p>I was curious to visualize the timing and the duration of the shutdowns. Happily, the beginning and ending dates were reported in the article. I hand entered the data (it seemed faster than scraping). In terms of writing an <strong>R</strong> script, the only trick was creating date variables (<code>plot.From</code> and <code>plot.To</code>) for plotting that used a single fiscal year (FY2001).</p>
+<pre class="r"><code>library(tidyverse)
+library(scales)
+
+df &lt;- data.frame(
+  Shut = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18),
+  mm1 = c(9, 9, 10, 11, 9, 9, 11, 9, 12, 11, 9, 10, 10, 12, 10, 11, 12, 10),
+  dd1 = c(30, 30, 31, 30, 30, 30, 20, 30, 17, 10, 30, 3, 16, 18, 5, 13, 5, 1),
+  yyyy1 = c(1976, 1977, 1977, 1977, 1978, 1979, 1981, 1982, 1982, 1983, 1984,
+    1984, 1986, 1987, 1990, 1995, 1995, 2013),
+  mm2 = c(10, 10, 11, 12, 10, 10, 11, 10, 12, 11, 10, 10, 10, 12, 10, 11, 1,
+    10),
+  dd2 = c(11, 13, 9, 9, 18, 12, 23, 2, 21, 14, 3, 5, 18, 20, 9, 19, 6, 17),
+  yyyy2 = c(1976, 1977, 1977, 1977, 1978, 1979, 1981, 1982, 1982, 1983, 1984,
+    1984, 1986, 1987, 1990, 1995, 1996, 2013)
+  ) %&gt;%
+  mutate(
+    From = as.Date(paste(yyyy1, mm1, dd1, sep=&quot;-&quot;)),
+    To = as.Date(paste(yyyy2, mm2, dd2, sep=&quot;-&quot;)),
+    Duration = as.numeric(To - From),
+    FY = ifelse(mm2 &gt; 8, yyyy2+1, yyyy2),
+    # put From and To on a single calendar year for plotting
+    Plot.year1 = ifelse(mm1 &gt; 8, 2000, 2001),
+    Plot.year2 = ifelse(mm2 &gt; 8, 2000, 2001),
+    plot.From = as.Date(paste(Plot.year1, mm1, dd1, sep=&quot;-&quot;)),
+    plot.To = as.Date(paste(Plot.year2, mm2, dd2, sep=&quot;-&quot;))
+  )
+
+ggplot(df, aes(x=plot.From, xend=plot.To, y=FY, yend=FY)) +
+  geom_segment(color=&quot;#85bb65&quot;, size=2) +
+  geom_point() +
+  geom_point(aes(x=plot.To)) +
+  scale_x_date(labels=date_format(&quot;%b %d&quot;)) +
+  labs(x=&quot;Date&quot;, y=&quot;Fiscal year&quot;,
+    title=&quot;Timing of Past US Gov&#39;t Shut Downs&quot;) +
+  theme_bw(base_size=14)</code></pre>
+<p><img src="/post/2018-01-21-government-shutdowns_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>There have been 18 shutdowns so far (not including this latest one), but sometimes there was more than one shutdown in a year. There have been shutdowns in 13 fiscal years since 1974; that’s an average of 1 shutdown every 3.4 years. The average total duration of the shutdowns in a given fiscal year was 8.4 days.</p>
+<pre class="r"><code>df %&gt;%
+  group_by(FY) %&gt;%
+  summarise(ndays = sum(Duration)) %&gt;%
+  ggplot(aes(FY, ndays)) +
+    geom_bar(stat=&quot;identity&quot;, fill=&quot;#85bb65&quot;, color=&quot;black&quot;) +
+    labs(x=&quot;Fiscal year&quot;, y=&quot;Days&quot;,
+      title=&quot;Duration of Past US Gov&#39;t Shut Downs&quot;) +
+    theme_bw(base_size=14)</code></pre>
+<p><img src="/post/2018-01-21-government-shutdowns_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
