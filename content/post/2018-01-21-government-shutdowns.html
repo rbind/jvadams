@@ -46,7 +46,7 @@ ggplot(df, aes(x=plot.From, xend=plot.To, y=FY, yend=FY)) +
   geom_point(aes(x=plot.To)) +
   scale_x_date(labels=date_format(&quot;%b %d&quot;)) +
   labs(x=&quot;Date&quot;, y=&quot;Fiscal year&quot;,
-    title=&quot;Timing of Past US Gov&#39;t Shut Downs&quot;) +
+    title=&quot;Timing of Past US Gov&#39;t Shutdowns&quot;) +
   theme_bw(base_size=14)</code></pre>
 <p><img src="/post/2018-01-21-government-shutdowns_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
 <p>There have been 18 shutdowns so far (not including this latest one), but sometimes there was more than one shutdown in a year. There have been shutdowns in 13 fiscal years since 1974; that’s an average of 1 shutdown every 3.4 years. The average total duration of the shutdowns in a given fiscal year was 8.4 days.</p>
@@ -56,6 +56,6 @@ ggplot(df, aes(x=plot.From, xend=plot.To, y=FY, yend=FY)) +
   ggplot(aes(FY, ndays)) +
     geom_bar(stat=&quot;identity&quot;, fill=&quot;#85bb65&quot;, color=&quot;black&quot;) +
     labs(x=&quot;Fiscal year&quot;, y=&quot;Days&quot;,
-      title=&quot;Duration of Past US Gov&#39;t Shut Downs&quot;) +
+      title=&quot;Duration of Past US Gov&#39;t Shutdowns&quot;) +
     theme_bw(base_size=14)</code></pre>
 <p><img src="/post/2018-01-21-government-shutdowns_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>

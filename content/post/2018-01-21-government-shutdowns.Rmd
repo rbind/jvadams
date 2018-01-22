@@ -52,7 +52,7 @@ ggplot(df, aes(x=plot.From, xend=plot.To, y=FY, yend=FY)) +
   geom_point(aes(x=plot.To)) +
   scale_x_date(labels=date_format("%b %d")) +
   labs(x="Date", y="Fiscal year",
-    title="Timing of Past US Gov't Shut Downs") +
+    title="Timing of Past US Gov't Shutdowns") +
   theme_bw(base_size=14)
 ```
 
@@ -65,6 +65,6 @@ df %>%
   ggplot(aes(FY, ndays)) +
     geom_bar(stat="identity", fill="#85bb65", color="black") +
     labs(x="Fiscal year", y="Days",
-      title="Duration of Past US Gov't Shut Downs") +
+      title="Duration of Past US Gov't Shutdowns") +
     theme_bw(base_size=14)
 ```
