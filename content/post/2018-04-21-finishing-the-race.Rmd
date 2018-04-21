@@ -93,7 +93,7 @@ ggplot(raceprop, aes(Year, PctFinishers, color=Gender)) +
     position=position_dodge(width=0.2)) +
   geom_point() +
   geom_line(size=1) +
-  labs(y="Finishers  (% of Starters)") +
+  labs(y="Finishers  (% of starters)", title="Boston Marathon Finishers") +
   theme_bw(base_size=14)
 ```
 
