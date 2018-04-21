@@ -1,0 +1,107 @@
+---
+title: Finishing the Race
+author: JVA
+date: '2018-04-21'
+slug: finishing-the-race
+categories:
+  - R
+tags:
+  - sports
+  - gender
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+```
+
+[Why Men Quit and Women Don’t](https://www.nytimes.com/2018/04/20/opinion/boston-marathon-women-nurse.html).  The tweet caught my eye.
+
+`r htmltools::HTML("{{< tweet 987502049867812864 >}}")`
+
+I wanted to see for myself the percentage of women and men that finished the Boston Marathon.  I found the 2018 data here: [http://registration.baa.org/2018/cf/Public/iframe_Statistics.htm](http://registration.baa.org/2018/cf/Public/iframe_Statistics.htm).  I replaced the year in the URL to get earlier years back to 2010.  Then I scraped the data using [R](https://www.r-project.org/) and the package [rvest](https://CRAN.R-project.org/package=rvest).
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(rvest)
+library(binom)
+library(DT)
+```
+
+```{r eval=FALSE}
+library(tidyverse)
+library(rvest)
+library(binom)
+library(DT)
+```
+
+```{r}
+prefix <- "http://registration.baa.org/"
+suffix <- "/cf/Public/iframe_Statistics.htm"
+
+Year <- 2010:2018
+# create empty list for results
+results <- setNames(vector("list", length(Year)), Year)
+for(i in 1:9) {
+  # the 2018 data were in different rows than the other years
+  getrows <- if(i<9) 4:5 else 6:7
+  df <- read_html(paste0(prefix, Year[i], suffix)) %>%
+    html_nodes("table") %>%
+    # grab the 4th table
+    .[4] %>%
+    html_table(fill=TRUE) %>%
+    # extract the first element from the list
+    .[[1]] %>%
+    # extract given rows and columns from the data frame
+    .[getrows, c(1, 3:4)]
+  # assign names (again, to deal with the different 2018 data)
+  names(df) <- c("Gender", "Starters", "Finishers")
+  results[[i]] <- df
+}
+
+# convert list to data frame
+race <- bind_rows(results, .id="Year") %>%
+  # convert numbered columns to numeric
+  type_convert() %>%
+  # convert Gender to a factor
+  mutate(
+    Gender = factor(Gender, level=c("female", "male"),
+      label=c("Female", "Male"))
+  )
+```
+
+I used the `binom.confint()` function from the [binom](https://CRAN.R-project.org/package=binom) package to calculate exact binomial confidence intervals around the percentage of starters that finished the race.  Then I plotted the percentage of finishers, by gender, over time.  (I did not include the data from 2013, when the race was cut short by the bombing.)
+
+```{r}
+prop <- with(race, binom.confint(Finishers, Starters, method="exact"))
+
+raceprop <- bind_cols(race, 100*prop[, 4:6]) %>%
+  rename(
+    PctFinishers=mean,
+    PctFinLo=lower,
+    PctFinHi=upper
+  ) %>%
+  mutate(
+    # set 2013 finishers to missing, marathon was cut short by bombing
+    Finishers = ifelse(Year==2013, NA, Finishers),
+    PctFinishers = ifelse(Year==2013, NA, PctFinishers),
+    PctFinLo = ifelse(Year==2013, NA, PctFinLo),
+    PctFinHi = ifelse(Year==2013, NA, PctFinHi)
+  )
+
+ggplot(raceprop, aes(Year, PctFinishers, color=Gender)) +
+  geom_errorbar(aes(ymin=PctFinLo, ymax=PctFinHi), width=0.2, alpha=0.5,
+    position=position_dodge(width=0.2)) +
+  geom_point() +
+  geom_line(size=1) +
+  labs(y="Finishers  (% of Starters)") +
+  theme_bw(base_size=14)
+```
+
+In most years, a higher percentage of males finish the race than females.  The two exceptions were **2012**, which was *"an unusually hot 86-degree day"* and **2018**, which had *"horizontal rain and freezing temperatures."*  Interesting.
+
+```{r}
+datatable(raceprop, options=list(pageLength=25)) %>%
+  formatCurrency(c("Starters", "Finishers"), currency="", digits=0) %>%
+  formatRound(c("PctFinishers", "PctFinLo", "PctFinHi"), 1)
+```
+

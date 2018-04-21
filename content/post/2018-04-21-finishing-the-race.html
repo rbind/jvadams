@@ -1,0 +1,90 @@
+---
+title: Finishing the Race
+author: JVA
+date: '2018-04-21'
+slug: finishing-the-race
+categories:
+  - R
+tags:
+  - sports
+  - gender
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+
+
+<p><a href="https://www.nytimes.com/2018/04/20/opinion/boston-marathon-women-nurse.html">Why Men Quit and Women Don’t</a>. The tweet caught my eye.</p>
+{{< tweet 987502049867812864 >}}
+<p>I wanted to see for myself the percentage of women and men that finished the Boston Marathon. I found the 2018 data here: <a href="http://registration.baa.org/2018/cf/Public/iframe_Statistics.htm" class="uri">http://registration.baa.org/2018/cf/Public/iframe_Statistics.htm</a>. I replaced the year in the URL to get earlier years back to 2010. Then I scraped the data using <a href="https://www.r-project.org/">R</a> and the package <a href="https://CRAN.R-project.org/package=rvest">rvest</a>.</p>
+<pre class="r"><code>library(tidyverse)
+library(rvest)
+library(binom)
+library(DT)</code></pre>
+<pre class="r"><code>prefix &lt;- &quot;http://registration.baa.org/&quot;
+suffix &lt;- &quot;/cf/Public/iframe_Statistics.htm&quot;
+
+Year &lt;- 2010:2018
+# create empty list for results
+results &lt;- setNames(vector(&quot;list&quot;, length(Year)), Year)
+for(i in 1:9) {
+  # the 2018 data were in different rows than the other years
+  getrows &lt;- if(i&lt;9) 4:5 else 6:7
+  df &lt;- read_html(paste0(prefix, Year[i], suffix)) %&gt;%
+    html_nodes(&quot;table&quot;) %&gt;%
+    # grab the 4th table
+    .[4] %&gt;%
+    html_table(fill=TRUE) %&gt;%
+    # extract the first element from the list
+    .[[1]] %&gt;%
+    # extract given rows and columns from the data frame
+    .[getrows, c(1, 3:4)]
+  # assign names (again, to deal with the different 2018 data)
+  names(df) &lt;- c(&quot;Gender&quot;, &quot;Starters&quot;, &quot;Finishers&quot;)
+  results[[i]] &lt;- df
+}
+
+# convert list to data frame
+race &lt;- bind_rows(results, .id=&quot;Year&quot;) %&gt;%
+  # convert numbered columns to numeric
+  type_convert() %&gt;%
+  # convert Gender to a factor
+  mutate(
+    Gender = factor(Gender, level=c(&quot;female&quot;, &quot;male&quot;),
+      label=c(&quot;Female&quot;, &quot;Male&quot;))
+  )</code></pre>
+<p>I used the <code>binom.confint()</code> function from the <a href="https://CRAN.R-project.org/package=binom">binom</a> package to calculate exact binomial confidence intervals around the percentage of starters that finished the race. Then I plotted the percentage of finishers, by gender, over time. (I did not include the data from 2013, when the race was cut short by the bombing.)</p>
+<pre class="r"><code>prop &lt;- with(race, binom.confint(Finishers, Starters, method=&quot;exact&quot;))
+
+raceprop &lt;- bind_cols(race, 100*prop[, 4:6]) %&gt;%
+  rename(
+    PctFinishers=mean,
+    PctFinLo=lower,
+    PctFinHi=upper
+  ) %&gt;%
+  mutate(
+    # set 2013 finishers to missing, marathon was cut short by bombing
+    Finishers = ifelse(Year==2013, NA, Finishers),
+    PctFinishers = ifelse(Year==2013, NA, PctFinishers),
+    PctFinLo = ifelse(Year==2013, NA, PctFinLo),
+    PctFinHi = ifelse(Year==2013, NA, PctFinHi)
+  )
+
+ggplot(raceprop, aes(Year, PctFinishers, color=Gender)) +
+  geom_errorbar(aes(ymin=PctFinLo, ymax=PctFinHi), width=0.2, alpha=0.5,
+    position=position_dodge(width=0.2)) +
+  geom_point() +
+  geom_line(size=1) +
+  labs(y=&quot;Finishers  (% of Starters)&quot;) +
+  theme_bw(base_size=14)</code></pre>
+<p><img src="/post/2018-04-21-finishing-the-race_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>In most years, a higher percentage of males finish the race than females. The two exceptions were <strong>2012</strong>, which was <em>“an unusually hot 86-degree day”</em> and <strong>2018</strong>, which had <em>“horizontal rain and freezing temperatures.”</em> Interesting.</p>
+<pre class="r"><code>datatable(raceprop, options=list(pageLength=25)) %&gt;%
+  formatCurrency(c(&quot;Starters&quot;, &quot;Finishers&quot;), currency=&quot;&quot;, digits=0) %&gt;%
+  formatRound(c(&quot;PctFinishers&quot;, &quot;PctFinLo&quot;, &quot;PctFinHi&quot;), 1)</code></pre>
+<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18"],[2010,2010,2011,2011,2012,2012,2013,2013,2014,2014,2015,2015,2016,2016,2017,2017,2018,2018],["Male","Female","Male","Female","Male","Female","Male","Female","Male","Female","Male","Female","Male","Female","Male","Female","Male","Female"],[13354,9772,14064,10285,13177,9308,13357,9985,17830,14628,14859,12308,14877,12611,14842,12380,14885,12063],[13072,9468,13839,10074,12621,8995,null,null,17582,14343,14580,12018,14463,12166,14431,11969,14142,11604],[97.8882731765763,96.8890708145722,98.4001706484642,97.9484686436558,95.7805266752675,96.6373012462398,null,null,98.6090858104318,98.0516817063167,98.122350090854,97.6438089047774,97.2171808832426,96.4713345492031,97.2308314243363,96.6801292407108,95.0083977158213,96.1949763740363],[97.6299806819969,96.5254521768215,98.178946247295,97.6556795075062,95.4232281574397,96.2508134491181,null,null,98.4262247187667,97.8144833361072,97.8910760027227,97.3602412221863,96.9401037002047,96.1344429906687,96.9540402714218,96.3493285375694,94.6462967058355,95.8380907164019],[98.1253903788519,97.2243748298218,98.6010273229501,98.2136462929951,96.1174229712762,96.9942301958083,null,null,98.7758285563265,98.2694851866559,98.3344988452332,97.9045248704001,97.4755799562146,96.7865515191136,97.4888939188541,96.9887379245814,95.3527753248064,96.5293426552398]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Year<\/th>\n      <th>Gender<\/th>\n      <th>Starters<\/th>\n      <th>Finishers<\/th>\n      <th>PctFinishers<\/th>\n      <th>PctFinLo<\/th>\n      <th>PctFinHi<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":25,"columnDefs":[{"className":"dt-right","targets":[1,3,4,5,6,7]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"rowCallback":"function(row, data) {\nDTWidget.formatRound(this, row, data, 5, 1);\nDTWidget.formatRound(this, row, data, 6, 1);\nDTWidget.formatRound(this, row, data, 7, 1);\nDTWidget.formatCurrency(this, row, data, 3, '', 0, 3, ',', '.', true);\nDTWidget.formatCurrency(this, row, data, 4, '', 0, 3, ',', '.', true);\n}"}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
