@@ -40,7 +40,7 @@ ggplot(df, aes(Year, Catch, fill=Category)) +
     subtitle=&quot;Estimated global marine fishing catch&quot;) +
   theme_bw(base_size = 14)</code></pre>
 <p><img src="/post/2018-05-06-area-chart-alternatives_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<p>Moving the Industrial Reported catch from the bottom of the stack to the top definitely helps, but it’s not a perfect solution. For example, the bump in the yellow Non-Industrial IUU (illegal, unreported, and unregulated) in the late 1980s ripples up through the categories above it.</p>
+<p>Moving the Industrial Reported catch from the bottom of the stack to the top definitely helps, but it’s not a perfect solution. For example, the bump in the yellow Non-Industrial IUU (illegal, unreported, and unregulated) catch in the late 1980s can be seen in the categories above it. Hard to tell if those other categories have a bump of their own there.</p>
 <p>Do the categories really need to be stacked? A line plot will not suffer from this ripple effect.</p>
 <pre class="r"><code>df2 &lt;- df %&gt;%
   separate(Category, c(&quot;Source&quot;, &quot;Type&quot;), &quot;Ind&quot;) %&gt;%
@@ -66,5 +66,5 @@ ggplot(df2, aes(Year, Catch, color=Type, linetype=Source)) +
     subtitle=&quot;Estimated global marine fishing catch&quot;) +
   theme_bw(base_size = 14)</code></pre>
 <p><img src="/post/2018-05-06-area-chart-alternatives_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
-<p>This last view shows patterns in the time series that were not necessarily evident in the previous plots. Industrial catch seems to have leveled off since the 1990s, whereas Non-Industrial catch continues to increase. Non-Industrial Reported and IUU catches both have a 5-year cycle of peaks and valleys. And look at that spike in Industrial IUU in 1989.</p>
+<p>This last view shows patterns in the time series that were not necessarily evident in the previous plots. Industrial catch seems to have leveled off since the 1990s, whereas Non-Industrial catch continues to increase. Non-Industrial Reported and IUU catches both have a 5-year cycle of peaks and valleys. And look at that spike in Industrial IUU in 1989!</p>
 <p>Bottom line? There is no silver bullet, no one chart that does it all.</p>
