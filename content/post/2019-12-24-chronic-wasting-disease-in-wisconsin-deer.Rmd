@@ -1,0 +1,192 @@
+---
+title: Chronic Wasting Disease in Wisconsin Deer
+author: JVA
+date: '2019-12-24'
+slug: chronic-wasting-disease-in-wisconsin-deer
+categories:
+  - R
+tags:
+  - web scraping
+  - map
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+```
+
+Do you deer hunt in Wisconsin?  Have you had your deer tested for chronic wasting disease?  I recently learned the results of the test on my deer and was curious about the results statewide.
+
+# Bringing in the data
+
+The county data are available online at [dnr.wi.gov](https://dnr.wi.gov/wmcwd/Summary/County).  I used [SelectorGadget](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html) to identify the columns of data I wanted from each page and the **rvest** package to do the extraction, looping through the pages with different years of data.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(rvest)
+library(maps)
+library(DT)
+```
+
+```{r eval=FALSE}
+library(tidyverse)
+library(rvest)
+library(maps)
+library(DT)
+```
+
+```{r}
+prefix <- "https://dnr.wi.gov/wmcwd/Summary/YearCounty/"
+Years <- c("1999-2001", 2002:2019)
+
+# create empty list for results
+results <- setNames(vector("list", length(Years)), Years)
+
+# loop through the years to fill up the list
+for(i in 1:19) {
+  County <- read_html(paste0(prefix, Years[i])) %>%
+    html_nodes("td:nth-child(1)") %>%
+    html_text(trim=TRUE)
+  Analyzed <- read_html(paste0(prefix, Years[i])) %>%
+    html_nodes("td:nth-child(3)") %>%
+    html_text(trim=TRUE) %>%
+    as.numeric()
+  Positive <- read_html(paste0(prefix, Years[i])) %>%
+    html_nodes("td:nth-child(4)") %>%
+    html_text(trim=TRUE) %>%
+    as.numeric()
+  results[[i]] <- data.frame(County, Analyzed, Positive, 
+    stringsAsFactors=FALSE)
+}
+
+# convert list to data frame
+cwd <- bind_rows(results, .id="Years") %>%
+  mutate(
+    Year = as.numeric(ifelse(Years=="1999-2001", "2000", Years)),
+    Pos.pct = 100*Positive/Analyzed,
+    County = ifelse(County=="Saint Croix", "St Croix", County),
+    county = casefold(County, upper=FALSE)
+  ) %>%
+  filter(County!="Unknown")
+```
+
+In preparation for mapping the results, I also downloaded county mapping data for Wisconsin.
+
+```{r}
+WI <- map_data("county") %>%
+  filter(region=="wisconsin") %>%
+  rename(county=subregion)
+
+WIcenters <- WI %>%
+  group_by(county) %>%
+  summarise(long=mean(range(long)), lat=mean(range(lat)))
+```
+
+# Summarizing the data
+
+Then I summarized the test data, determining the first year that CWD was detected in each county and the percentage of positive results over all tests during 1999-2019 and just during 2019. 
+
+```{r}
+# summarize 2019 data
+cwd19 <- cwd %>%
+  filter(Year==2019) %>%
+  select(County, Analyzed.2019=Analyzed, Positive.2019=Positive, 
+    Pos.pct.2019=Pos.pct)
+
+# summarize all years of data
+cwdall <- cwd %>%
+  mutate(
+    YP=ifelse(Positive>0, Year, NA)
+  ) %>%
+  group_by(County, county) %>%
+  summarize(
+    First.Detected=min(YP, na.rm=TRUE), 
+    Analyzed.Total=sum(Analyzed), 
+    Positive.Total=sum(Positive)) %>%
+  mutate(
+    Pos.pct.Total=100*Positive.Total/Analyzed.Total
+  ) %>%
+  mutate(
+    First.Detected=ifelse(is.finite(First.Detected), First.Detected, NA)
+  ) %>%
+  full_join(cwd19) %>%
+  full_join(WIcenters) %>%
+  mutate(
+    # mapit is missing for never detected and % positive for 2019 otherwise
+    mapit = ifelse(Pos.pct.Total>0, Pos.pct.2019, NA)
+  ) %>%
+  arrange(-Pos.pct.Total, County)
+
+cwdall %>%
+  select(-county, -lat, -long, -mapit) %>%
+  datatable() %>%
+  formatCurrency(c("Analyzed.Total", "Positive.Total", 
+    "Analyzed.2019", "Positive.2019"), currency="", digits=0) %>%
+  formatRound(c("Pos.pct.Total", "Pos.pct.2019"), 1)
+```
+
+Since 1999, **`r sum(!is.na(cwdall$mapit))`** of 72 Wisconsin counties have tested positive for CWD, including **`r sum(cwdall$First.Detected==2019, na.rm=TRUE)`** counties that tested positive for the first time in 2019: **`r paste(cwdall$County[cwdall$First.Detected==2019 & !is.na(cwdall$First.Detected)], collapse=", ")`**.
+
+# Mapping the data
+
+I used the data to create a county map showing the percentage of positive results in 2019, the counties that have never tested positive for CWD, and the first year of detection.
+
+```{r, fig.width=6, fig.height=6}
+WIplus <- cwdall %>%
+  select(-lat, -long) %>%
+  full_join(WI)
+
+ggplot(WIplus, aes(long, lat)) +
+  # county polygons
+  geom_polygon(aes(group=group, fill=mapit), colour="white") +
+  # black text on all counties with any detections since 1999
+  geom_text(data=cwdall, size=3.5, fontface="bold", 
+    aes(long, lat, label=substring(First.Detected, 3, 4))) +
+  # writeover white text on dark colored counties
+  geom_text(data=filter(cwdall, Pos.pct.Total<1.1), size=3.5, fontface="bold", 
+    color="white", aes(long, lat, label=substring(First.Detected, 3, 4))) +
+  scale_fill_viridis_c(name="% Positive\nin 2019") +
+  coord_map() +
+  # remove default ggplot background, grid, and axes
+  theme(
+    panel.background = element_blank(),
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank()
+  ) +
+  labs(title="Chronic Wasting Disease in Wisconsin Deer", 
+    subtitle="Shading represents the percentage of deer that tested positive for CWD.\nCounties that have never tested positive since 1999 are in gray.\nLabels indicate the first year CWD was detected.")
+```
+
+# Plotting the data
+
+Finally, to see the progression of the infection in the deer population over time, I plotted the percentage of positive results for every county that ever had a positive test.  I only show percentages for years with at least 8 deer tested in each county.  (*The combined data from 1999-2001 is plotted at 2000.*)
+
+```{r}
+cwd8 <- cwd %>%
+  filter(Analyzed>=8 & County %in% cwdall$County[!is.na(cwdall$mapit)]) %>%
+  mutate(
+    County=factor(County, levels=cwdall$County)
+  )
+
+ggplot(cwd8, aes(Year, Pos.pct)) +
+  geom_smooth(color="cyan", size=1, method="loess", span=2) +
+  geom_point(alpha=0.5) +
+  scale_x_continuous(breaks=seq(2000, 2019, 5), 
+    labels=substring(seq(2000, 2019, 5), 3, 4)) +
+  facet_wrap(~ County) +
+  labs(y="% Positive for CWD") +
+  theme_bw(base_size=12)
+```
+
+```{r, eval=FALSE, echo=FALSE}
+# two other interesting plots that I didn't share
+
+ggplot(cwdall, aes(First.Detected, Pos.pct.Total, size=Pos.pct.2019, color=Pos.pct.2019)) +
+  geom_point()
+
+ggplot(cwd, aes(Analyzed, Positive, color=Pos.pct)) +
+  geom_point() + 
+  scale_x_log10() +
+  scale_y_log10()
+```
