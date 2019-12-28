@@ -167,6 +167,14 @@ ggplot(WIplus, aes(long, lat)) +
 ```
 
 ```{r, fig.width=8, fig.height=8}
+sub <- cwdall %>%
+  select(County, First.Detected) %>%
+  full_join(cwd) %>%
+  full_join(WIcenters) %>%
+  mutate(
+    lab = ifelse(First.Detected==Year, "+", NA)
+  )
+
 cwdWIplus <- cwd %>%
   filter(Analyzed >= 8) %>%
   mutate(
@@ -180,6 +188,8 @@ ggplot(cwdWIplus, aes(long, lat)) +
   geom_polygon(data=WIstate, aes(), colour="gray", fill="white") +
   # county polygons
   geom_polygon(aes(group=group, fill=mapit), colour="white") +
+  # text on counties in their first year of detection
+  geom_text(data=sub, aes(label=lab), size=3, fontface="bold", color="orange") +
   scale_fill_viridis_c(name="% CWD", na.value="lightgray") +
   coord_map() +
   # remove default ggplot background, grid, and axes
@@ -191,11 +201,10 @@ ggplot(cwdWIplus, aes(long, lat)) +
     axis.ticks = element_blank()
   ) +
   facet_wrap(~ Years) +
-#  theme(strip.text = element_text(size=5)) +
   theme(strip.text.x = element_text(margin = margin(0.5, 0, 0, 0, "cm")),
     strip.background = element_blank()) +
   labs(title="Chronic Wasting Disease in Wisconsin Deer", 
-    subtitle="Shading represents the percentage of deer that tested positive for CWD.\nAll counties with at least 8 deer tested are shown.\nThose with no deer testing positive for CWD that year are in gray.")
+    subtitle="Shading represents the percentage of deer that tested positive for CWD.\nAll counties with at least 8 deer tested are shown.\nThose with no deer testing positive for CWD that year are in gray.\nOrange plus signs indicate the first year of detection for each county.")
 ```
 
 
