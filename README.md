@@ -17,4 +17,4 @@ but I've got a workaround for adding new posts:
 - knit
 - Restart RStudio
 - Addins, Serve Site
-- GitHub Desktop, Commit to master, Push
+- GitHub Desktop, Commit to master, Push origin
