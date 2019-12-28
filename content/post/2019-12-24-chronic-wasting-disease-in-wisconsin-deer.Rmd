@@ -64,9 +64,12 @@ cwd <- bind_rows(results, .id="Years") %>%
   filter(County!="Unknown")
 ```
 
-In preparation for mapping the results, I also downloaded county mapping data for Wisconsin from the [ggplot2](https://ggplot2.tidyverse.org/) package.
+In preparation for mapping the results, I also downloaded state and county mapping data for Wisconsin from the [ggplot2](https://ggplot2.tidyverse.org/) package.
 
 ```{r}
+WIstate <- map_data("state") %>%
+  filter(region=="wisconsin")
+
 WI <- map_data("county") %>%
   filter(region=="wisconsin") %>%
   rename(county=subregion)
@@ -149,7 +152,7 @@ ggplot(WIplus, aes(long, lat)) +
   # writeover white text on dark colored counties
   geom_text(data=filter(cwdall, Pos.pct.Total<1.1), size=3.5, fontface="bold", 
     color="white", aes(long, lat, label=substring(First.Detected, 3, 4))) +
-  scale_fill_viridis_c(name="% Positive\nin 2019") +
+  scale_fill_viridis_c(name="% Positive\nin 2019", na.value="lightgray") +
   coord_map() +
   # remove default ggplot background, grid, and axes
   theme(
@@ -173,9 +176,11 @@ cwdWIplus <- cwd %>%
   full_join(WI)
 
 ggplot(cwdWIplus, aes(long, lat)) +
+  # state polygon
+  geom_polygon(data=WIstate, aes(), colour="gray", fill="white") +
   # county polygons
   geom_polygon(aes(group=group, fill=mapit), colour="white") +
-  scale_fill_viridis_c(name="% CWD") +
+  scale_fill_viridis_c(name="% CWD", na.value="lightgray") +
   coord_map() +
   # remove default ggplot background, grid, and axes
   theme(
