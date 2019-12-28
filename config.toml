@@ -28,6 +28,10 @@ ignoreFiles = ["\\.Rmd$", "_files$", "_cache$"]
 [[menu.main]]
     name = "Twitter"
     url = "https://twitter.com/JeanVAdams"
+    
+[taxonomies]
+    tag = "tags"
+    category = "categories"
 
 [params]
     description = "A website built through Hugo and blogdown."
