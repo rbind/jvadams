@@ -17,22 +17,12 @@ ignoreFiles = ["\\.Rmd$", "_files$", "_cache$"]
     name = "Blog"
     url = "/"
 [[menu.main]]
-    name = "Categories"
-    url = "/categories/"
-[[menu.main]]
-    name = "Tags"
-    url = "/tags/"
-[[menu.main]]
     name = "GitHub"
     url = "https://github.com/JVAdams"
 [[menu.main]]
     name = "Twitter"
     url = "https://twitter.com/JeanVAdams"
     
-[taxonomies]
-    tag = "tags"
-    category = "categories"
-
 [params]
     description = "A website built through Hugo and blogdown."
 
