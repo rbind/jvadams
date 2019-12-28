@@ -1,15 +1,27 @@
 ---
-title: "Coding with R"
-date: "2016-05-05T21:48:51-07:00"
+title: "Exploring Data"
 ---
 
-# Challenges and problems encountered, solutions and workarounds employed.
 
-I'm a statistician working in Great Lakes science.
+## Statistics, Fisheries, Great Lakes
 
 * [Peer-reviewed publications](https://github.com/JVAdams/Ref/blob/master/Pubs.md)
 * [R Packages, vignettes, and shiny apps](https://github.com/JVAdams/Ref/blob/master/Rpkgs.md)
 * [Videos](https://github.com/JVAdams/Ref/blob/master/Vids.md)
+
+
+## Research Haiku
+
+*Sea lampreys attack!*   
+*Surviving lake trout hold clues*  
+*to the ones that died.*  
+
+
+## Source code
+
+The source code for this website can be found [here](https://github.com/rbind/jvadams).
+
+<br>
 
 <br>
 
