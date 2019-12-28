@@ -11,23 +11,18 @@ tags:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, 
+  fig.width=6, fig.height=6)
 ```
 
 Do you deer hunt in Wisconsin?  Have you had your deer tested for chronic wasting disease?  I recently learned the results of the test on my deer and was curious about the results statewide.
 
+
 # Bringing in the data
 
-The county data are available online at [dnr.wi.gov](https://dnr.wi.gov/wmcwd/Summary/County).  I used [SelectorGadget](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html) to identify the columns of data I wanted from each page and the **rvest** package to do the extraction, looping through the pages with different years of data.
+The county data are available online at [dnr.wi.gov](https://dnr.wi.gov/wmcwd/Summary/County).  I used [SelectorGadget](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html) to identify the columns of data I wanted from each page and the [rvest](https://blog.rstudio.com/2014/11/24/rvest-easy-web-scraping-with-r/) package of [R](https://www.r-project.org/) to do the extraction, looping through the pages with different years of data.  You can see the code that I used [here](https://github.com/rbind/jvadams/blob/master/content/post/2019-12-24-chronic-wasting-disease-in-wisconsin-deer.Rmd).
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
-library(tidyverse)
-library(rvest)
-library(maps)
-library(DT)
-```
-
-```{r eval=FALSE}
 library(tidyverse)
 library(rvest)
 library(maps)
@@ -69,7 +64,7 @@ cwd <- bind_rows(results, .id="Years") %>%
   filter(County!="Unknown")
 ```
 
-In preparation for mapping the results, I also downloaded county mapping data for Wisconsin.
+In preparation for mapping the results, I also downloaded county mapping data for Wisconsin from the [ggplot2](https://ggplot2.tidyverse.org/) package.
 
 ```{r}
 WI <- map_data("county") %>%
@@ -80,6 +75,7 @@ WIcenters <- WI %>%
   group_by(county) %>%
   summarise(long=mean(range(long)), lat=mean(range(lat)))
 ```
+
 
 # Summarizing the data
 
@@ -115,22 +111,31 @@ cwdall <- cwd %>%
     mapit = ifelse(Pos.pct.Total>0, Pos.pct.2019, NA)
   ) %>%
   arrange(-Pos.pct.Total, County)
+```
 
+Since 1999, **`r sum(!is.na(cwdall$mapit))`** of 72 Wisconsin counties have tested positive for CWD, including **`r sum(cwdall$First.Detected==2019, na.rm=TRUE)`** counties that tested positive for the first time in 2019: **`r paste(cwdall$County[cwdall$First.Detected==2019 & !is.na(cwdall$First.Detected)], collapse=", ")`**.  
+
+<br>  
+
+```{r}
 cwdall %>%
   select(-county, -lat, -long, -mapit) %>%
-  datatable() %>%
+  datatable(options = list(scrollX="700px")) %>%
   formatCurrency(c("Analyzed.Total", "Positive.Total", 
     "Analyzed.2019", "Positive.2019"), currency="", digits=0) %>%
   formatRound(c("Pos.pct.Total", "Pos.pct.2019"), 1)
 ```
 
-Since 1999, **`r sum(!is.na(cwdall$mapit))`** of 72 Wisconsin counties have tested positive for CWD, including **`r sum(cwdall$First.Detected==2019, na.rm=TRUE)`** counties that tested positive for the first time in 2019: **`r paste(cwdall$County[cwdall$First.Detected==2019 & !is.na(cwdall$First.Detected)], collapse=", ")`**.
 
 # Mapping the data
 
 I used the data to create a county map showing the percentage of positive results in 2019, the counties that have never tested positive for CWD, and the first year of detection.
 
-```{r, fig.width=6, fig.height=6}
+Then I created a whole series of maps, one for each year of testing, to see how the counties with positive detections have expanded over time.
+
+<br>
+
+```{r}
 WIplus <- cwdall %>%
   select(-lat, -long) %>%
   full_join(WI)
@@ -158,6 +163,37 @@ ggplot(WIplus, aes(long, lat)) +
     subtitle="Shading represents the percentage of deer that tested positive for CWD.\nCounties that have never tested positive since 1999 are in gray.\nLabels indicate the first year CWD was detected.")
 ```
 
+```{r, fig.width=8, fig.height=8}
+cwdWIplus <- cwd %>%
+  filter(Analyzed >= 8) %>%
+  mutate(
+    # mapit is NA for 0 and % positive otherwise
+    mapit = ifelse(Pos.pct>0, Pos.pct, NA)
+  ) %>%
+  full_join(WI)
+
+ggplot(cwdWIplus, aes(long, lat)) +
+  # county polygons
+  geom_polygon(aes(group=group, fill=mapit), colour="white") +
+  scale_fill_viridis_c(name="% CWD") +
+  coord_map() +
+  # remove default ggplot background, grid, and axes
+  theme(
+    panel.background = element_blank(),
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank()
+  ) +
+  facet_wrap(~ Years) +
+#  theme(strip.text = element_text(size=5)) +
+  theme(strip.text.x = element_text(margin = margin(0.5, 0, 0, 0, "cm")),
+    strip.background = element_blank()) +
+  labs(title="Chronic Wasting Disease in Wisconsin Deer", 
+    subtitle="Shading represents the percentage of deer that tested positive for CWD.\nAll counties with at least 8 deer tested are shown.\nThose with no deer testing positive for CWD that year are in gray.")
+```
+
+
 # Plotting the data
 
 Finally, to see the progression of the infection in the deer population over time, I plotted the percentage of positive results for every county that ever had a positive test.  I only show percentages for years with at least 8 deer tested in each county.  (*The combined data from 1999-2001 is plotted at 2000.*)
@@ -177,16 +213,4 @@ ggplot(cwd8, aes(Year, Pos.pct)) +
   facet_wrap(~ County) +
   labs(y="% Positive for CWD") +
   theme_bw(base_size=12)
-```
-
-```{r, eval=FALSE, echo=FALSE}
-# two other interesting plots that I didn't share
-
-ggplot(cwdall, aes(First.Detected, Pos.pct.Total, size=Pos.pct.2019, color=Pos.pct.2019)) +
-  geom_point()
-
-ggplot(cwd, aes(Analyzed, Positive, color=Pos.pct)) +
-  geom_point() + 
-  scale_x_log10() +
-  scale_y_log10()
 ```
